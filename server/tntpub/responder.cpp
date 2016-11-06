@@ -9,6 +9,7 @@
 #include <tntpub/datamessage.h>
 
 #include <cxxtools/bin/bin.h>
+#include <cxxtools/json.h>
 
 #include <cxxtools/log.h>
 
@@ -24,6 +25,7 @@ Responder::Responder(Server& pubSubServer)
     : _stream(pubSubServer.server()),
       _pubSubServer(pubSubServer)
 {
+    log_info("new client connected");
     _stream.buffer().device()->setSelector(pubSubServer.server().selector());
 
     cxxtools::connect(_stream.buffer().inputReady, *this, &Responder::onInput);
@@ -36,6 +38,8 @@ Responder::Responder(Server& pubSubServer)
 
 void Responder::onInput(cxxtools::StreamBuffer& sb)
 {
+    log_debug("input detected");
+
     try
     {
         sb.endRead();
@@ -44,11 +48,12 @@ void Responder::onInput(cxxtools::StreamBuffer& sb)
         {
             if (_deserializer.advance(sb.sbumpc()))
             {
+                log_debug("message received: " << cxxtools::Json(_deserializer.si()).beautify(true));
                 try
                 {
                     DataMessage dataMessage;
                     _deserializer.deserialize(dataMessage);
-                    log_debug("data message received");
+                    log_debug("data message received; topic=\"" << dataMessage.topic << '"');
                     _pubSubServer.messageReceived(dataMessage);
                 }
                 catch (const cxxtools::SerializationError&)
@@ -72,7 +77,7 @@ void Responder::onInput(cxxtools::StreamBuffer& sb)
             }
         }
 
-        if (_stream.eof())
+        if (_stream.attachedDevice()->eof())
             closeClient();
         else
             sb.beginRead();
@@ -86,6 +91,8 @@ void Responder::onInput(cxxtools::StreamBuffer& sb)
 
 void Responder::onOutput(cxxtools::StreamBuffer& sb)
 {
+    log_debug("output detected");
+
     try
     {
         sb.endWrite();
@@ -101,6 +108,8 @@ void Responder::onOutput(cxxtools::StreamBuffer& sb)
 
 void Responder::onDataMessageReceived(const DataMessage& dataMessage)
 {
+    log_debug("check topics");
+
     for (const auto& topic: _topics)
     {
         if (dataMessage.topic == topic)
@@ -117,6 +126,7 @@ void Responder::onDataMessageReceived(const DataMessage& dataMessage)
 
 void Responder::closeClient()
 {
+    log_info("client disconnected");
     delete this;
 }
 

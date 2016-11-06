@@ -3,6 +3,7 @@ AUTOMAKE_OPTIONS = subdir-objects
 lib_LTLIBRARIES = libtntpub.la
 
 libtntpub_la_SOURCES = \
+	tntpub/client.cpp \
 	tntpub/datamessage.cpp \
 	tntpub/subscribemessage.cpp
 

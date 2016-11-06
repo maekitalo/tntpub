@@ -23,4 +23,5 @@ AC_OUTPUT([
     Makefile
     lib/Makefile
     server/Makefile
+    demo/Makefile
 ])

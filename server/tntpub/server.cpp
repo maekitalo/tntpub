@@ -20,10 +20,11 @@ namespace tntpub
 Server::Server(int argc, char* argv[])
 {
     cxxtools::Arg<std::string> ip(argc, argv, 'i');
-    cxxtools::Arg<unsigned short> port(argc, argv, 'p');
+    cxxtools::Arg<unsigned short> port(argc, argv, 'p', 9001);
 
     cxxtools::connect(_server.connectionPending, *this, &Server::onConnectionPending);
     _server.setSelector(&_eventLoop);
+    log_info("listen on " << ip.getValue() << ':' << port.getValue());
     _server.listen(ip, port);
 }
 
