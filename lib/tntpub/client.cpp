@@ -5,6 +5,7 @@
 
 #include <tntpub/client.h>
 #include <tntpub/subscribemessage.h>
+#include <tntpub/unsubscribemessage.h>
 
 #include <cxxtools/bin/bin.h>
 #include <cxxtools/json.h>
@@ -26,6 +27,15 @@ Client& Client::subscribe(const std::string& topic)
     SubscribeMessage subscribeMessage;
     subscribeMessage.topic = topic;
     _peer << cxxtools::bin::Bin(subscribeMessage);
+    _peer.buffer().beginWrite();
+    return *this;
+}
+
+Client& Client::unsubscribe(const std::string& topic)
+{
+    UnsubscribeMessage unsubscribeMessage;
+    unsubscribeMessage.topic = topic;
+    _peer << cxxtools::bin::Bin(unsubscribeMessage);
     _peer.buffer().beginWrite();
     return *this;
 }

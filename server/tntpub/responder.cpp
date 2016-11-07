@@ -5,8 +5,9 @@
 
 #include <tntpub/responder.h>
 #include <tntpub/server.h>
-#include <tntpub/subscribemessage.h>
 #include <tntpub/datamessage.h>
+#include <tntpub/subscribemessage.h>
+#include <tntpub/unsubscribemessage.h>
 
 #include <cxxtools/bin/bin.h>
 #include <cxxtools/json.h>
@@ -49,28 +50,43 @@ void Responder::onInput(cxxtools::StreamBuffer& sb)
             if (_deserializer.advance(sb.sbumpc()))
             {
                 log_debug("message received: " << cxxtools::Json(_deserializer.si()).beautify(true));
-                try
+                if (_deserializer.si().typeName() == "DataMessage")
                 {
                     DataMessage dataMessage;
                     _deserializer.deserialize(dataMessage);
+
                     log_debug("data message received; topic=\"" << dataMessage.topic << '"');
+
                     _pubSubServer.messageReceived(dataMessage);
                 }
-                catch (const cxxtools::SerializationError&)
-                {
-                    // not a data message
-                }
-
-                try
+                else if (_deserializer.si().typeName() == "SubscribeMessage")
                 {
                     SubscribeMessage subscribeMessage;
                     _deserializer.deserialize(subscribeMessage);
+
                     log_info("subscribe topic \"" << subscribeMessage.topic << '"');
+
                     _topics.push_back(subscribeMessage.topic);
                 }
-                catch (const cxxtools::SerializationError&)
+                else if (_deserializer.si().typeName() == "UnsubscribeMessage")
                 {
-                    // not a subscribe message
+                    UnsubscribeMessage unsubscribeMessage;
+                    _deserializer.deserialize(unsubscribeMessage);
+
+                    log_info("unsubscribe topic \"" << unsubscribeMessage.topic << '"');
+
+                    for (auto it = _topics.begin(); it != _topics.end(); ++it)
+                    {
+                        if (*it == unsubscribeMessage.topic)
+                        {
+                            _topics.erase(it);
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    log_warn("unknown message type \"" << _deserializer.si().typeName() << '"');
                 }
 
                 _deserializer.begin();

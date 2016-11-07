@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
         tntpub::Client client(peer);
 
         MyMessage msg;
-        while (std::cin >> cxxtools::Json(msg))
+        if (std::cin >> cxxtools::Json(msg))
         {
             client.sendMessage(topic, msg);
             peer.flush();

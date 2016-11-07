@@ -24,6 +24,7 @@ public:
     explicit Client(cxxtools::IOStream& peer);
 
     Client& subscribe(const std::string& topic);
+    Client& unsubscribe(const std::string& topic);
     Client& sendMessage(const DataMessage& msg);
 
     template <typename Obj> Client& sendMessage(const std::string& topic, const Obj& obj)
