@@ -15,23 +15,27 @@ log_define("tntpub.client")
 namespace tntpub
 {
 
-Client::Client(std::iostream& peer)
+Client::Client(cxxtools::IOStream& peer)
     : _peer(peer)
 {
     _deserializer.begin();
 }
 
-void Client::subscribe(const std::string& topic)
+Client& Client::subscribe(const std::string& topic)
 {
     SubscribeMessage subscribeMessage;
     subscribeMessage.topic = topic;
     _peer << cxxtools::bin::Bin(subscribeMessage);
+    _peer.buffer().beginWrite();
+    return *this;
 }
 
-void Client::sendMessage(const DataMessage& msg)
+Client& Client::sendMessage(const DataMessage& msg)
 {
     log_debug("sendMessage " << cxxtools::Json(msg).beautify(true));
     _peer << cxxtools::bin::Bin(msg);
+    _peer.buffer().beginWrite();
+    return *this;
 }
 
 const DataMessage& Client::readMessage()

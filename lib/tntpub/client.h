@@ -9,29 +9,33 @@
 #include <tntpub/datamessage.h>
 #include <cxxtools/bin/deserializer.h>
 #include <cxxtools/signal.h>
+#include <cxxtools/iostream.h>
 #include <iostream>
 
 namespace tntpub
 {
 class Client
 {
-    std::iostream& _peer;
+    cxxtools::IOStream& _peer;
     cxxtools::bin::Deserializer _deserializer;
     DataMessage _dataMessage;
 
 public:
-    explicit Client(std::iostream& peer);
+    explicit Client(cxxtools::IOStream& peer);
 
-    void subscribe(const std::string& topic);
-    void sendMessage(const DataMessage& msg);
+    Client& subscribe(const std::string& topic);
+    Client& sendMessage(const DataMessage& msg);
 
-    template <typename Obj> void sendMessage(const std::string& topic, const Obj& obj)
+    template <typename Obj> Client& sendMessage(const std::string& topic, const Obj& obj)
     {
         DataMessage dataMessage;
         dataMessage.topic = topic;
         dataMessage.data <<= obj;
-        sendMessage(dataMessage);
+        return sendMessage(dataMessage);
     }
+
+    void flush()
+    { _peer.flush(); }
 
     // Processes available input characters and returns true, if the data message is complete.
     // After it returns true, the message can be read using `getMessage`.
