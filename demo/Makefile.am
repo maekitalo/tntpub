@@ -4,7 +4,9 @@ noinst_HEADERS = \
 noinst_PROGRAMS = \
 	exampleAsyncReader \
 	exampleReader \
-	exampleSender
+	exampleSender \
+	readerBenchmarker \
+	readerBenchmarkerAsync
 
 exampleAsyncReader_SOURCES = \
 	exampleAsyncReader.cpp
@@ -14,6 +16,12 @@ exampleReader_SOURCES = \
 
 exampleSender_SOURCES = \
 	exampleSender.cpp
+
+readerBenchmarker_SOURCES = \
+	readerBenchmarker.cpp
+
+readerBenchmarkerAsync_SOURCES = \
+	readerBenchmarkerAsync.cpp
 
 AM_CPPFLAGS = -I$(top_builddir)/lib
 LDADD = $(top_builddir)/lib/libtntpub.la
