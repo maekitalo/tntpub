@@ -18,16 +18,11 @@
 
 cxxtools::EventLoop loop;
 
-void onMessageReceived(tntpub::Client& client)
+void onMessageReceived(tntpub::DataMessage& message)
 {
-    client.endRead();
-
     MyMessage msg;
-    client.getMessage(msg);
-
+    message.get(msg);
     std::cout << cxxtools::Json(msg).beautify(true);
-
-    client.beginRead();
 }
 
 void onCloseClient(tntpub::Client&)
@@ -53,8 +48,6 @@ int main(int argc, char* argv[])
 
         cxxtools::connect(client.messageReceived, onMessageReceived);
         cxxtools::connect(client.closed, onCloseClient);
-
-        client.beginRead();
 
         loop.run();
     }

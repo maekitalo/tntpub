@@ -61,10 +61,7 @@ public:
         readMessage().get(obj);
     }
 
-    void beginRead();
-    const DataMessage& endRead();
-
-    cxxtools::Signal<Client&> messageReceived;
+    cxxtools::Signal<DataMessage&> messageReceived;
     cxxtools::Signal<Client&> closed;
 };
 

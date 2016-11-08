@@ -22,6 +22,7 @@ Client::Client(cxxtools::IOStream& peer)
     cxxtools::connect(_peer.buffer().outputReady, *this, &Client::onOutput);
     cxxtools::connect(_peer.buffer().inputReady, *this, &Client::onInput);
     _deserializer.begin();
+    _peer.buffer().beginRead();
 }
 
 Client& Client::subscribe(const std::string& topic)
@@ -58,7 +59,7 @@ const DataMessage& Client::readMessage()
         if (_deserializer.advance(ch))
         {
             _deserializer.deserialize(_dataMessage);
-            messageReceived(*this);
+            messageReceived(_dataMessage);
             _deserializer.begin();
             return _dataMessage;
         }
@@ -69,16 +70,16 @@ const DataMessage& Client::readMessage()
 
 bool Client::advance()
 {
-    char ch;
+    log_debug("advance");
     while (_peer.rdbuf()->in_avail())
     {
-        _peer.get(ch);
+        char ch = _peer.rdbuf()->sbumpc();
 
         if (_deserializer.advance(ch))
         {
             log_debug("got message");
             _deserializer.deserialize(_dataMessage);
-            messageReceived(*this);
+            messageReceived(_dataMessage);
             _deserializer.begin();
             return true;
         }
@@ -99,25 +100,19 @@ void Client::onInput(cxxtools::StreamBuffer& sb)
 {
     log_debug("onInput");
     sb.endRead();
-    while (sb.in_avail())
+    while (true)
+    {
+        auto n = sb.in_avail();
+        log_debug("in_avail=" << n);
+        if (n <= 0)
+            break;
         advance();
+    }
 
     if (sb.device()->eof())
         closed(*this);
     else
         sb.beginRead();
-}
-
-void Client::beginRead()
-{
-    log_debug("beginRead");
-    _peer.buffer().beginRead();
-}
-
-const DataMessage& Client::endRead()
-{
-    log_debug("endRead");
-    return _dataMessage;
 }
 
 }
