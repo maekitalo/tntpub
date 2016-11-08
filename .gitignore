@@ -36,3 +36,8 @@ Makefile
 
 *~
 .dirstamp
+server/tntpubserver
+demo/exampleAsyncReader
+demo/exampleReader
+demo/exampleSender
+
