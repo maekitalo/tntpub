@@ -15,6 +15,8 @@
 #include <exception>
 #include <iostream>
 
+log_define("tntpub.exampleReader")
+
 int main(int argc, char* argv[])
 {
     try
@@ -36,6 +38,8 @@ int main(int argc, char* argv[])
         {
             MyMessage msg;
             client.readMessage().get(msg);
+
+            log_info("got message");
 
             std::cout << cxxtools::Json(msg).beautify(true);
         }

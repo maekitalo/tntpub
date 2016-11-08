@@ -14,11 +14,14 @@
 
 namespace tntpub
 {
-class Client
+class Client : public cxxtools::Connectable
 {
     cxxtools::IOStream& _peer;
     cxxtools::bin::Deserializer _deserializer;
     DataMessage _dataMessage;
+
+    void onOutput(cxxtools::StreamBuffer& sb);
+    void onInput(cxxtools::StreamBuffer& sb);
 
 public:
     explicit Client(cxxtools::IOStream& peer);
@@ -58,7 +61,10 @@ public:
         readMessage().get(obj);
     }
 
-    cxxtools::Signal<DataMessage&> messageReceived;
+    void beginRead();
+    const DataMessage& endRead();
+
+    cxxtools::Signal<Client&> messageReceived;
     cxxtools::Signal<Client&> closed;
 };
 

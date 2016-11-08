@@ -19,6 +19,8 @@ namespace tntpub
 Client::Client(cxxtools::IOStream& peer)
     : _peer(peer)
 {
+    cxxtools::connect(_peer.buffer().outputReady, *this, &Client::onOutput);
+    cxxtools::connect(_peer.buffer().inputReady, *this, &Client::onInput);
     _deserializer.begin();
 }
 
@@ -56,7 +58,7 @@ const DataMessage& Client::readMessage()
         if (_deserializer.advance(ch))
         {
             _deserializer.deserialize(_dataMessage);
-            messageReceived(_dataMessage);
+            messageReceived(*this);
             _deserializer.begin();
             return _dataMessage;
         }
@@ -74,13 +76,48 @@ bool Client::advance()
 
         if (_deserializer.advance(ch))
         {
+            log_debug("got message");
             _deserializer.deserialize(_dataMessage);
-            messageReceived(_dataMessage);
+            messageReceived(*this);
+            _deserializer.begin();
             return true;
         }
     }
 
     return false;
+}
+
+void Client::onOutput(cxxtools::StreamBuffer& sb)
+{
+    log_debug("onOutput");
+    sb.endWrite();
+    if (sb.out_avail())
+        sb.beginWrite();
+}
+
+void Client::onInput(cxxtools::StreamBuffer& sb)
+{
+    log_debug("onInput");
+    sb.endRead();
+    while (sb.in_avail())
+        advance();
+
+    if (sb.device()->eof())
+        closed(*this);
+    else
+        sb.beginRead();
+}
+
+void Client::beginRead()
+{
+    log_debug("beginRead");
+    _peer.buffer().beginRead();
+}
+
+const DataMessage& Client::endRead()
+{
+    log_debug("endRead");
+    return _dataMessage;
 }
 
 }

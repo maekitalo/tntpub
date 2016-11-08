@@ -2,8 +2,12 @@ noinst_HEADERS = \
 	mymessage.h
 
 noinst_PROGRAMS = \
+	exampleAsyncReader \
 	exampleReader \
 	exampleSender
+
+exampleAsyncReader_SOURCES = \
+	exampleAsyncReader.cpp
 
 exampleReader_SOURCES = \
 	exampleReader.cpp
