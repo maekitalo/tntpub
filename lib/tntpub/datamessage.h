@@ -17,6 +17,15 @@ struct DataMessage
     std::string topic;
     cxxtools::SerializationInfo data;
 
+    DataMessage() {}
+
+    template <typename Obj>
+    DataMessage(const std::string& topic_, const Obj& obj)
+        : topic(topic_)
+    {
+        data <<= obj;
+    }
+
     template <typename Obj> void get(Obj& obj) const
     { data >>= obj; }
 };
