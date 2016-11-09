@@ -23,11 +23,11 @@ namespace tntpub
 // Responder
 //
 Responder::Responder(Server& pubSubServer)
-    : _stream(pubSubServer.server()),
+    : _stream(pubSubServer._server),
       _pubSubServer(pubSubServer)
 {
     log_info("new client connected");
-    _stream.buffer().device()->setSelector(pubSubServer.server().selector());
+    _stream.buffer().device()->setSelector(pubSubServer._server.selector());
 
     cxxtools::connect(_stream.buffer().inputReady, *this, &Responder::onInput);
     cxxtools::connect(_stream.buffer().outputReady, *this, &Responder::onOutput);
@@ -67,6 +67,7 @@ void Responder::onInput(cxxtools::StreamBuffer& sb)
                     log_info("subscribe topic \"" << subscribeMessage.topic << '"');
 
                     _topics.push_back(subscribeMessage.topic);
+                    _pubSubServer.clientSubscribed(subscribeMessage.topic);
                 }
                 else if (_deserializer.si().typeName() == "UnsubscribeMessage")
                 {

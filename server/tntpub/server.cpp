@@ -6,7 +6,6 @@
 #include <tntpub/server.h>
 #include <tntpub/responder.h>
 
-#include <cxxtools/arg.h>
 #include <cxxtools/log.h>
 
 log_define("tntpub.server")
@@ -17,20 +16,14 @@ namespace tntpub
 ////////////////////////////////////////////////////////////////////////
 // Server
 //
-Server::Server(int argc, char* argv[])
+Server::Server(cxxtools::SelectorBase& selector, const std::string& ip, unsigned short port)
 {
-    cxxtools::Arg<std::string> ip(argc, argv, 'i');
-    cxxtools::Arg<unsigned short> port(argc, argv, 'p', 9001);
-
     cxxtools::connect(_server.connectionPending, *this, &Server::onConnectionPending);
-    _server.setSelector(&_eventLoop);
-    log_info("listen on " << ip.getValue() << ':' << port.getValue());
-    _server.listen(ip, port);
-}
 
-void Server::run()
-{
-    _eventLoop.run();
+    _server.setSelector(&selector);
+
+    log_info("listen on " << ip << ':' << port);
+    _server.listen(ip, port);
 }
 
 void Server::onConnectionPending(cxxtools::net::TcpServer&)

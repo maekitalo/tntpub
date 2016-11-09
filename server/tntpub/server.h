@@ -7,34 +7,30 @@
 #define TNTPUB_SERVER_H
 
 #include <cxxtools/connectable.h>
-
 #include <cxxtools/signal.h>
-#include <cxxtools/eventloop.h>
-
 #include <cxxtools/net/tcpserver.h>
 
 namespace tntpub
 {
 
 class DataMessage;
-class Server;
+class Responder;
 
 ////////////////////////////////////////////////////////////////////////
 // Server
 //
 class Server : public cxxtools::Connectable
 {
+    friend class Responder;
+
     cxxtools::net::TcpServer _server;
-    cxxtools::EventLoop _eventLoop;
 
     void onConnectionPending(cxxtools::net::TcpServer&);
 
 public:
-    Server(int argc, char* argv[]);
-    void run();
+    Server(cxxtools::SelectorBase& selector, const std::string& ip, unsigned short port);
 
-    cxxtools::net::TcpServer& server()   { return _server; }
-
+    cxxtools::Signal<const std::string&> clientSubscribed;
     cxxtools::Signal<const DataMessage&> messageReceived;
 };
 

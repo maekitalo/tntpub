@@ -4,7 +4,11 @@
  */
 
 #include <tntpub/server.h>
+
+#include <cxxtools/eventloop.h>
+#include <cxxtools/arg.h>
 #include <cxxtools/log.h>
+
 #include <iostream>
 
 int main(int argc, char* argv[])
@@ -12,8 +16,13 @@ int main(int argc, char* argv[])
     try
     {
         log_init();
-        tntpub::Server pubSubServer(argc, argv);
-        pubSubServer.run();
+
+        cxxtools::Arg<std::string> ip(argc, argv, 'i');
+        cxxtools::Arg<unsigned short> port(argc, argv, 'p', 9001);
+
+        cxxtools::EventLoop eventLoop;
+        tntpub::Server pubSubServer(eventLoop, ip, port);
+        eventLoop.run();
     }
     catch (const std::exception& e)
     {
