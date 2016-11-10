@@ -67,7 +67,7 @@ void Responder::onInput(cxxtools::StreamBuffer& sb)
                     log_info("subscribe topic \"" << subscribeMessage.topic << '"');
 
                     _topics.push_back(subscribeMessage.topic);
-                    _pubSubServer.clientSubscribed(subscribeMessage.topic);
+                    _pubSubServer.clientSubscribed(*this, subscribeMessage.topic);
                 }
                 else if (_deserializer.si().typeName() == "UnsubscribeMessage")
                 {
@@ -144,6 +144,7 @@ void Responder::onDataMessageReceived(const DataMessage& dataMessage)
 void Responder::closeClient()
 {
     log_info("client disconnected");
+    _pubSubServer.clientDisconnected(*this);
     delete this;
 }
 

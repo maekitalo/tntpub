@@ -28,7 +28,7 @@ Server::Server(cxxtools::SelectorBase& selector, const std::string& ip, unsigned
 
 void Server::onConnectionPending(cxxtools::net::TcpServer&)
 {
-    new Responder(*this);
+    clientConnected(*new Responder(*this));
 }
 
 }

@@ -30,7 +30,9 @@ class Server : public cxxtools::Connectable
 public:
     Server(cxxtools::SelectorBase& selector, const std::string& ip, unsigned short port);
 
-    cxxtools::Signal<const std::string&> clientSubscribed;
+    cxxtools::Signal<Responder&> clientConnected;
+    cxxtools::Signal<Responder&> clientDisconnected;
+    cxxtools::Signal<Responder&, const std::string&> clientSubscribed;
     cxxtools::Signal<const DataMessage&> messageReceived;
 };
 
