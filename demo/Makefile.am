@@ -23,5 +23,5 @@ readerBenchmarker_SOURCES = \
 readerBenchmarkerAsync_SOURCES = \
 	readerBenchmarkerAsync.cpp
 
-AM_CPPFLAGS = -I$(top_builddir)/lib
+AM_CPPFLAGS = -I$(top_srcdir)/lib
 LDADD = $(top_builddir)/lib/libtntpub.la
