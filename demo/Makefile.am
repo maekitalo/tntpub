@@ -6,7 +6,8 @@ noinst_PROGRAMS = \
 	exampleReader \
 	exampleSender \
 	readerBenchmarker \
-	readerBenchmarkerAsync
+	readerBenchmarkerAsync \
+	recoverQueue
 
 exampleAsyncReader_SOURCES = \
 	exampleAsyncReader.cpp
@@ -22,6 +23,9 @@ readerBenchmarker_SOURCES = \
 
 readerBenchmarkerAsync_SOURCES = \
 	readerBenchmarkerAsync.cpp
+
+recoverQueue_SOURCES = \
+	recoverQueue.cpp
 
 AM_CPPFLAGS = -I$(top_srcdir)/lib
 LDADD = $(top_builddir)/lib/libtntpub.la
