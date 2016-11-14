@@ -27,6 +27,8 @@ class Server : public cxxtools::Connectable
 
     void onConnectionPending(cxxtools::net::TcpServer&);
 
+    virtual void processMessage(Responder& client, DataMessage& dataMessage);
+
 public:
     Server(cxxtools::SelectorBase& selector, const std::string& ip, unsigned short port);
 

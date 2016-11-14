@@ -31,4 +31,9 @@ void Server::onConnectionPending(cxxtools::net::TcpServer&)
     clientConnected(*new Responder(*this));
 }
 
+void Server::processMessage(Responder&, DataMessage& dataMessage)
+{
+    messageReceived(dataMessage);
+}
+
 }

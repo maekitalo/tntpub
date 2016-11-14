@@ -57,7 +57,7 @@ void Responder::onInput(cxxtools::StreamBuffer& sb)
 
                     log_debug("data message received; topic=\"" << dataMessage.topic << '"');
 
-                    _pubSubServer.messageReceived(dataMessage);
+                    _pubSubServer.processMessage(*this, dataMessage);
                 }
                 else if (_deserializer.si().typeName() == "SubscribeMessage")
                 {
