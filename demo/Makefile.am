@@ -7,7 +7,9 @@ noinst_PROGRAMS = \
 	exampleSender \
 	readerBenchmarker \
 	readerBenchmarkerAsync \
-	recoverQueue
+	recoverQueue \
+	alarmClient \
+	alarmServer
 
 exampleAsyncReader_SOURCES = \
 	exampleAsyncReader.cpp
@@ -26,6 +28,14 @@ readerBenchmarkerAsync_SOURCES = \
 
 recoverQueue_SOURCES = \
 	recoverQueue.cpp
+
+alarmClient_SOURCES = \
+	alarmMessage.cpp \
+	alarmClient.cpp
+
+alarmServer_SOURCES = \
+	alarmMessage.cpp \
+	alarmServer.cpp
 
 AM_CPPFLAGS = -I$(top_srcdir)/lib
 LDADD = $(top_builddir)/lib/libtntpub.la
