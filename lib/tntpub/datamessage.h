@@ -28,6 +28,9 @@ struct DataMessage
 
     template <typename Obj> void get(Obj& obj) const
     { data >>= obj; }
+
+    const std::string& typeName() const
+    { return data.typeName(); }
 };
 
 void operator<<= (cxxtools::SerializationInfo& si, const DataMessage& dm);
