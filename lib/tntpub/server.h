@@ -30,7 +30,10 @@ class Server : public cxxtools::Connectable
     virtual void processMessage(Responder& client, DataMessage& dataMessage);
 
 public:
+    Server(cxxtools::SelectorBase& selector);
     Server(cxxtools::SelectorBase& selector, const std::string& ip, unsigned short port);
+
+    void listen(const std::string& ip, unsigned short port);
 
     cxxtools::Signal<Responder&> clientConnected;
     cxxtools::Signal<Responder&> clientDisconnected;
