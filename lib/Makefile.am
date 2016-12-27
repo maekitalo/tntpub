@@ -14,6 +14,7 @@ libtntpub_la_LDFLAGS = -version-info @sonumber@
 libtntpub_la_LIBADD = -lcxxtools -lcxxtools-bin
 
 nobase_include_HEADERS = \
+	tntpub/client.h \
 	tntpub/datamessage.h \
 	tntpub/responder.h \
 	tntpub/server.h \

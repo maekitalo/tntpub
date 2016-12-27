@@ -1,4 +1,5 @@
 noinst_HEADERS = \
+	alarmMessage.h \
 	mymessage.h
 
 noinst_PROGRAMS = \
