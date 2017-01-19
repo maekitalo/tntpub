@@ -26,7 +26,7 @@ Responder::Responder(Server& pubSubServer)
     : _stream(pubSubServer._server),
       _pubSubServer(pubSubServer)
 {
-    log_info("new client connected");
+    log_info("new client " << static_cast<void*>(this) << " connected");
     _stream.buffer().device()->setSelector(pubSubServer._server.selector());
 
     cxxtools::connect(_stream.buffer().inputReady, *this, &Responder::onInput);
@@ -39,7 +39,7 @@ Responder::Responder(Server& pubSubServer)
 
 void Responder::onInput(cxxtools::StreamBuffer& sb)
 {
-    log_debug("input detected");
+    log_debug("input detected " << static_cast<void*>(this));
 
     try
     {
@@ -118,7 +118,7 @@ void Responder::onOutput(cxxtools::StreamBuffer& sb)
     }
     catch (const std::exception& e)
     {
-        log_debug("exception while reading: " << e.what());
+        log_debug("exception while writing: " << e.what());
         closeClient();
     }
 }
@@ -132,8 +132,16 @@ void Responder::onDataMessageReceived(const DataMessage& dataMessage)
         if (dataMessage.topic == topic)
         {
             log_debug("send message to client");
-            _stream << cxxtools::bin::Bin(dataMessage);
-            _stream.buffer().beginWrite();
+            try
+            {
+                _stream << cxxtools::bin::Bin(dataMessage);
+                _stream.buffer().beginWrite();
+            }
+            catch (const std::exception& e)
+            {
+                log_debug("exception while writing: " << e.what());
+                closeClient();
+            }
             return;
         }
     }
@@ -143,7 +151,7 @@ void Responder::onDataMessageReceived(const DataMessage& dataMessage)
 
 void Responder::closeClient()
 {
-    log_info("client disconnected");
+    log_info("client " << static_cast<void*>(this) << " disconnected");
     _pubSubServer.clientDisconnected(*this);
     delete this;
 }
