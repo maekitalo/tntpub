@@ -37,10 +37,11 @@ Makefile
 *~
 .dirstamp
 server/tntpubserver
+demo/alarmClient
+demo/alarmServer
 demo/exampleAsyncReader
 demo/exampleReader
 demo/exampleSender
 demo/readerBenchmarker
 demo/readerBenchmarkerAsync
-
-
+demo/recoverQueue
