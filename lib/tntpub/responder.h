@@ -7,6 +7,7 @@
 #define TNTPUB_RESPONDER_H
 
 #include <cxxtools/connectable.h>
+#include <cxxtools/signal.h>
 
 #include <cxxtools/bin/deserializer.h>
 
@@ -43,6 +44,12 @@ public:
     explicit Responder(Server& pubSubServer);
 
     void onDataMessageReceived(const DataMessage&);
+
+    cxxtools::StreamBuffer& buffer()
+    { return _stream.buffer(); }
+
+    // signals that all messages has been sent to the peer
+    cxxtools::Signal<Responder&> outputBufferEmpty;
 };
 
 }

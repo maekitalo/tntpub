@@ -115,6 +115,8 @@ void Responder::onOutput(cxxtools::StreamBuffer& sb)
         sb.endWrite();
         if (sb.out_avail())
             sb.beginWrite();
+        else
+            outputBufferEmpty(*this);
     }
     catch (const std::exception& e)
     {
