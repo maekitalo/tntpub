@@ -22,13 +22,11 @@ namespace tntpub
 ////////////////////////////////////////////////////////////////////////
 // Responder
 //
-Responder::Responder(Server& pubSubServer)
-    : _stream(pubSubServer._server),
+Responder::Responder(Server& pubSubServer, cxxtools::IOStream& stream)
+    : _stream(stream),
       _pubSubServer(pubSubServer)
 {
-    log_info("new client " << static_cast<void*>(this) << " connected");
-    _stream.buffer().device()->setSelector(pubSubServer._server.selector());
-
+    _stream.buffer().device()->setSelector(pubSubServer.selector());
     cxxtools::connect(_stream.buffer().inputReady, *this, &Responder::onInput);
     cxxtools::connect(_stream.buffer().outputReady, *this, &Responder::onOutput);
     cxxtools::connect(pubSubServer.messageReceived, *this, &Responder::onDataMessageReceived);
@@ -156,6 +154,16 @@ void Responder::closeClient()
     log_info("client " << static_cast<void*>(this) << " disconnected");
     _pubSubServer.clientDisconnected(*this);
     delete this;
+}
+
+////////////////////////////////////////////////////////////////////////
+// TcpResponder
+//
+TcpResponder::TcpResponder(Server& pubSubServer)
+    : Responder(pubSubServer, _netstream),
+      _netstream(pubSubServer._server)
+{
+    log_info("new client " << static_cast<void*>(this) << " connected");
 }
 
 }

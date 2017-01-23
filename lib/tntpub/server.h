@@ -16,6 +16,7 @@ namespace tntpub
 {
 
 class Responder;
+class TcpResponder;
 
 ////////////////////////////////////////////////////////////////////////
 // Server
@@ -23,6 +24,7 @@ class Responder;
 class Server : public cxxtools::Connectable
 {
     friend class Responder;
+    friend class TcpResponder;
 
     cxxtools::net::TcpServer _server;
 
@@ -33,6 +35,9 @@ class Server : public cxxtools::Connectable
 public:
     Server(cxxtools::SelectorBase& selector);
     Server(cxxtools::SelectorBase& selector, const std::string& ip, unsigned short port);
+
+    cxxtools::SelectorBase* selector()
+        { return _server.selector(); }
 
     void listen(const std::string& ip, unsigned short port);
 
