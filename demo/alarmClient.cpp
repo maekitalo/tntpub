@@ -5,9 +5,8 @@
 
 #include "alarmMessage.h"
 
-#include <tntpub/client.h>
+#include <tntpub/tcpclient.h>
 
-#include <cxxtools/net/tcpstream.h>
 #include <cxxtools/arg.h>
 #include <cxxtools/log.h>
 #include <cxxtools/join.h>
@@ -39,8 +38,7 @@ int main(int argc, char* argv[])
         if (help)
             throw Usage();
 
-        cxxtools::net::TcpStream peer(ip, port);
-        tntpub::Client client(peer);
+        tntpub::TcpClient client(ip, port);
 
         if (commitMessage)
         {

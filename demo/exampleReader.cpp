@@ -5,9 +5,8 @@
 
 #include "mymessage.h"
 
-#include <tntpub/client.h>
+#include <tntpub/tcpclient.h>
 
-#include <cxxtools/net/tcpstream.h>
 #include <cxxtools/json.h>
 #include <cxxtools/arg.h>
 #include <cxxtools/log.h>
@@ -28,9 +27,8 @@ int main(int argc, char* argv[])
         cxxtools::Arg<std::string> ip(argc, argv, 'i');
         cxxtools::Arg<unsigned short> port(argc, argv, 'p', 9001);
 
-        // create transport object and client application
-        cxxtools::net::TcpStream peer(ip, port);
-        tntpub::Client client(peer);
+        // create tcp client application
+        tntpub::TcpClient client(ip, port);
 
         // subscribe to topics passed as arguments
         for (int a = 1; a < argc; ++a)
@@ -38,7 +36,7 @@ int main(int argc, char* argv[])
 
         // since output is buffered we need to force sending
         // the subscribe message
-        peer.flush();
+        client.flush();
 
         while (true)
         {

@@ -6,10 +6,9 @@
 
 #include "mymessage.h"
 
-#include <tntpub/client.h>
+#include <tntpub/tcpclient.h>
 
 #include <cxxtools/eventloop.h>
-#include <cxxtools/net/tcpstream.h>
 #include <cxxtools/clock.h>
 #include <cxxtools/arg.h>
 #include <cxxtools/log.h>
@@ -54,9 +53,7 @@ int main(int argc, char* argv[])
         cxxtools::Arg<std::string> ip(argc, argv, 'i');
         cxxtools::Arg<unsigned short> port(argc, argv, 'p', 9001);
 
-        cxxtools::net::TcpStream peer(ip, port);
-        peer.attachedDevice()->setSelector(&loop);
-        tntpub::Client client(peer);
+        tntpub::TcpClient client(&loop, ip, port);
 
         for (int a = 1; a < argc; ++a)
             client.subscribe(argv[a]);

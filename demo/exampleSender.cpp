@@ -5,9 +5,8 @@
 
 #include "mymessage.h"
 
-#include <tntpub/client.h>
+#include <tntpub/tcpclient.h>
 
-#include <cxxtools/net/tcpstream.h>
 #include <cxxtools/json.h>
 #include <cxxtools/arg.h>
 #include <cxxtools/log.h>
@@ -32,8 +31,7 @@ int main(int argc, char* argv[])
 
         std::string topic = argv[1];
 
-        cxxtools::net::TcpStream peer(ip, port);
-        tntpub::Client client(peer);
+        tntpub::TcpClient client(ip, port);
 
         MyMessage msg;
 
