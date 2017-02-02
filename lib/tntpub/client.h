@@ -16,15 +16,23 @@ namespace tntpub
 {
 class Client : public cxxtools::Connectable
 {
-    cxxtools::IOStream& _peer;
+    cxxtools::IOStream* _peer;
     cxxtools::bin::Deserializer _deserializer;
     DataMessage _dataMessage;
 
     void onOutput(cxxtools::StreamBuffer& sb);
     void onInput(cxxtools::StreamBuffer& sb);
 
+protected:
+    Client()
+        : _peer(0)
+        { }
+
+    void init(cxxtools::IOStream& peer);
+
 public:
-    explicit Client(cxxtools::IOStream& peer);
+    explicit Client(cxxtools::IOStream& peer)
+        { init(peer); }
 
     Client& subscribe(const std::string& topic);
     Client& unsubscribe(const std::string& topic);
@@ -39,7 +47,7 @@ public:
     }
 
     void flush()
-    { _peer.flush(); }
+    { _peer->flush(); }
 
     // Processes available input characters and returns true, if the data message is complete.
     // After it returns true, the message can be read using `getMessage`.

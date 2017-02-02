@@ -22,16 +22,21 @@ namespace tntpub
 ////////////////////////////////////////////////////////////////////////
 // Responder
 //
-Responder::Responder(Server& pubSubServer, cxxtools::IOStream& stream)
-    : _stream(stream),
+Responder::Responder(Server& pubSubServer)
+    : _stream(0),
       _pubSubServer(pubSubServer)
 {
-    _stream.buffer().device()->setSelector(pubSubServer.selector());
-    cxxtools::connect(_stream.buffer().inputReady, *this, &Responder::onInput);
-    cxxtools::connect(_stream.buffer().outputReady, *this, &Responder::onOutput);
-    cxxtools::connect(pubSubServer.messageReceived, *this, &Responder::onDataMessageReceived);
+}
 
-    _stream.buffer().beginRead();
+void Responder::init(cxxtools::IOStream& stream)
+{
+    _stream = &stream;
+    _stream->buffer().device()->setSelector(_pubSubServer.selector());
+    cxxtools::connect(_stream->buffer().inputReady, *this, &Responder::onInput);
+    cxxtools::connect(_stream->buffer().outputReady, *this, &Responder::onOutput);
+    cxxtools::connect(_pubSubServer.messageReceived, *this, &Responder::onDataMessageReceived);
+
+    _stream->buffer().beginRead();
     _deserializer.begin();
 }
 
@@ -92,7 +97,7 @@ void Responder::onInput(cxxtools::StreamBuffer& sb)
             }
         }
 
-        if (_stream.attachedDevice()->eof())
+        if (_stream->attachedDevice()->eof())
             closeClient();
         else
             sb.beginRead();
@@ -134,8 +139,8 @@ void Responder::onDataMessageReceived(const DataMessage& dataMessage)
             log_debug("send message to client");
             try
             {
-                _stream << cxxtools::bin::Bin(dataMessage);
-                _stream.buffer().beginWrite();
+                *_stream << cxxtools::bin::Bin(dataMessage);
+                _stream->buffer().beginWrite();
             }
             catch (const std::exception& e)
             {
@@ -160,9 +165,10 @@ void Responder::closeClient()
 // TcpResponder
 //
 TcpResponder::TcpResponder(Server& pubSubServer)
-    : Responder(pubSubServer, _netstream),
+    : Responder(pubSubServer),
       _netstream(pubSubServer._server)
 {
+    init(_netstream);
     log_info("new client " << static_cast<void*>(this) << " connected");
 }
 

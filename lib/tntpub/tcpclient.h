@@ -17,28 +17,26 @@ class TcpClient : public Client
 
 public:
     explicit TcpClient(const std::string& ipaddr, unsigned short int port)
-        : Client(_peer),
-          _peer(ipaddr, port)
-          { }
+        : _peer(ipaddr, port)
+        { init(_peer); }
 
     explicit TcpClient(const cxxtools::net::AddrInfo& addrinfo)
-        : Client(_peer),
-          _peer(addrinfo)
-          { }
+        : _peer(addrinfo)
+        { init(_peer); }
 
     explicit TcpClient(cxxtools::SelectorBase* selector, const std::string& ipaddr, unsigned short int port)
-        : Client(_peer),
-          _peer(ipaddr, port)
-      {
-          _peer.attachedDevice()->setSelector(selector);
-      }
+        : _peer(ipaddr, port)
+    {
+        _peer.attachedDevice()->setSelector(selector);
+        init(_peer);
+    }
 
     explicit TcpClient(cxxtools::SelectorBase* selector, const cxxtools::net::AddrInfo& addrinfo)
-        : Client(_peer),
-          _peer(addrinfo)
-      {
-          _peer.attachedDevice()->setSelector(selector);
-      }
+        : _peer(addrinfo)
+    {
+        _peer.attachedDevice()->setSelector(selector);
+        init(_peer);
+    }
 
     cxxtools::net::TcpStream& peer()
         { return _peer; }

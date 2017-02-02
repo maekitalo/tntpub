@@ -29,7 +29,7 @@ class Server;
 //
 class Responder : public cxxtools::Connectable
 {
-    cxxtools::IOStream& _stream;
+    cxxtools::IOStream* _stream;
     Server& _pubSubServer;
     cxxtools::bin::Deserializer _deserializer;
 
@@ -40,13 +40,16 @@ class Responder : public cxxtools::Connectable
 
     void closeClient();
 
+protected:
+    void init(cxxtools::IOStream& stream);
+
 public:
-    explicit Responder(Server& pubSubServer, cxxtools::IOStream& stream);
+    explicit Responder(Server& pubSubServer);
 
     void onDataMessageReceived(const DataMessage&);
 
     cxxtools::StreamBuffer& buffer()
-    { return _stream.buffer(); }
+    { return _stream->buffer(); }
 
     // signals that all messages has been sent to the peer
     cxxtools::Signal<Responder&> outputBufferEmpty;

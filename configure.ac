@@ -1,4 +1,4 @@
-AC_INIT([tntpub], [0.1], [tommi@tntnet.org])
+AC_INIT([tntpub], [0.3], [tommi@tntnet.org])
 AM_INIT_AUTOMAKE([foreign])
 LT_INIT
 

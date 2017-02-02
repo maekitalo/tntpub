@@ -16,21 +16,21 @@ log_define("tntpub.client")
 namespace tntpub
 {
 
-Client::Client(cxxtools::IOStream& peer)
-    : _peer(peer)
+void Client::init(cxxtools::IOStream& peer)
 {
-    cxxtools::connect(_peer.buffer().outputReady, *this, &Client::onOutput);
-    cxxtools::connect(_peer.buffer().inputReady, *this, &Client::onInput);
+    _peer = &peer;
+    cxxtools::connect(_peer->buffer().outputReady, *this, &Client::onOutput);
+    cxxtools::connect(_peer->buffer().inputReady, *this, &Client::onInput);
     _deserializer.begin();
-    _peer.buffer().beginRead();
+    _peer->buffer().beginRead();
 }
 
 Client& Client::subscribe(const std::string& topic)
 {
     SubscribeMessage subscribeMessage;
     subscribeMessage.topic = topic;
-    _peer << cxxtools::bin::Bin(subscribeMessage);
-    _peer.buffer().beginWrite();
+    *_peer << cxxtools::bin::Bin(subscribeMessage);
+    _peer->buffer().beginWrite();
     return *this;
 }
 
@@ -38,23 +38,23 @@ Client& Client::unsubscribe(const std::string& topic)
 {
     UnsubscribeMessage unsubscribeMessage;
     unsubscribeMessage.topic = topic;
-    _peer << cxxtools::bin::Bin(unsubscribeMessage);
-    _peer.buffer().beginWrite();
+    *_peer << cxxtools::bin::Bin(unsubscribeMessage);
+    _peer->buffer().beginWrite();
     return *this;
 }
 
 Client& Client::sendMessage(const DataMessage& msg)
 {
     log_debug("sendMessage " << cxxtools::Json(msg).beautify(true));
-    _peer << cxxtools::bin::Bin(msg);
-    _peer.buffer().beginWrite();
+    *_peer << cxxtools::bin::Bin(msg);
+    _peer->buffer().beginWrite();
     return *this;
 }
 
 const DataMessage& Client::readMessage()
 {
     char ch;
-    while (_peer.get(ch))
+    while (_peer->get(ch))
     {
         if (_deserializer.advance(ch))
         {
@@ -71,9 +71,9 @@ const DataMessage& Client::readMessage()
 bool Client::advance()
 {
     log_debug("advance");
-    while (_peer.rdbuf()->in_avail())
+    while (_peer->rdbuf()->in_avail())
     {
-        char ch = _peer.rdbuf()->sbumpc();
+        char ch = _peer->rdbuf()->sbumpc();
 
         if (_deserializer.advance(ch))
         {
