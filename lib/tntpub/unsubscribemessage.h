@@ -7,6 +7,7 @@
 #define TNTPUB_UNSUBSCRIBEMESSAGE_H
 
 #include <string>
+#include <tntpub/datamessage.h>
 
 namespace cxxtools
 {
@@ -16,13 +17,23 @@ namespace cxxtools
 namespace tntpub
 {
 
-struct UnsubscribeMessage
+class UnsubscribeMessage : public DataMessage
 {
-    std::string topic;
+public:
+    UnsubscribeMessage()
+        { }
+
+    explicit UnsubscribeMessage(const std::string& topic)
+        : DataMessage(topic)
+        { }
+
+    template <typename Obj>
+    UnsubscribeMessage(const std::string& topic, const Obj& obj)
+        : DataMessage(topic, obj)
+        { }
 };
 
 void operator<<= (cxxtools::SerializationInfo& si, const UnsubscribeMessage& s);
-void operator>>= (const cxxtools::SerializationInfo& si, UnsubscribeMessage& s);
 
 }
 

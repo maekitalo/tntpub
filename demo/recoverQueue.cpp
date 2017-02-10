@@ -28,7 +28,7 @@ void onClientSubscribed(tntpub::Responder& client, const std::string& topic)
 
 void onDataMessageReceived(const tntpub::DataMessage& dm)
 {
-    if (dm.topic == persistantTopic)
+    if (dm.topic() == persistantTopic)
         messages.push_back(dm);
 }
 

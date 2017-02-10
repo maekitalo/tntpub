@@ -12,29 +12,38 @@
 namespace tntpub
 {
 
-struct DataMessage
+class DataMessage
 {
-    std::string topic;
-    cxxtools::SerializationInfo data;
+    friend void operator<<= (cxxtools::SerializationInfo& si, const DataMessage& dm);
+    friend void operator>>= (const cxxtools::SerializationInfo& si, DataMessage& dm);
 
+    std::string _topic;
+    cxxtools::SerializationInfo _data;
+
+protected:
+    explicit DataMessage(const std::string& topic)
+        : _topic(topic)
+        { }
+
+public:
     DataMessage() {}
 
     template <typename Obj>
-    DataMessage(const std::string& topic_, const Obj& obj)
-        : topic(topic_)
+    DataMessage(const std::string& topic, const Obj& obj)
+        : _topic(topic)
     {
-        data <<= obj;
+        _data <<= obj;
     }
 
     template <typename Obj> void get(Obj& obj) const
-    { data >>= obj; }
+    { _data >>= obj; }
+
+    const std::string& topic() const
+    { return _topic; }
 
     const std::string& typeName() const
-    { return data.typeName(); }
+    { return _data.typeName(); }
 };
-
-void operator<<= (cxxtools::SerializationInfo& si, const DataMessage& dm);
-void operator>>= (const cxxtools::SerializationInfo& si, DataMessage& dm);
 
 }
 

@@ -7,6 +7,7 @@
 #define TNTPUB_SUBSCRIBEMESSAGE_H
 
 #include <string>
+#include <tntpub/datamessage.h>
 
 namespace cxxtools
 {
@@ -16,13 +17,23 @@ namespace cxxtools
 namespace tntpub
 {
 
-struct SubscribeMessage
+class SubscribeMessage : public DataMessage
 {
-    std::string topic;
+public:
+    SubscribeMessage()
+        { }
+
+    explicit SubscribeMessage(const std::string& topic)
+        : DataMessage(topic)
+        { }
+
+    template <typename Obj>
+    SubscribeMessage(const std::string& topic, const Obj& obj)
+        : DataMessage(topic, obj)
+        { }
 };
 
 void operator<<= (cxxtools::SerializationInfo& si, const SubscribeMessage& s);
-void operator>>= (const cxxtools::SerializationInfo& si, SubscribeMessage& s);
 
 }
 

@@ -11,13 +11,8 @@ namespace tntpub
 
 void operator<<= (cxxtools::SerializationInfo& si, const SubscribeMessage& s)
 {
+    si <<= static_cast<const DataMessage&>(s);
     si.setTypeName("SubscribeMessage");
-    si.addMember("topic") <<= s.topic;
-}
-
-void operator>>= (const cxxtools::SerializationInfo& si, SubscribeMessage& s)
-{
-    si.getMember("topic") >>= s.topic;
 }
 
 }

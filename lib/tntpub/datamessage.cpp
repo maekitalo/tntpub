@@ -11,14 +11,14 @@ namespace tntpub
 void operator<<= (cxxtools::SerializationInfo& si, const DataMessage& dm)
 {
     si.setTypeName("DataMessage");
-    si.addMember("topic") <<= dm.topic;
-    si.addMember("data") <<= dm.data;
+    si.addMember("topic") <<= dm._topic;
+    si.addMember("data") <<= dm._data;
 }
 
 void operator>>= (const cxxtools::SerializationInfo& si, DataMessage& dm)
 {
-    si.getMember("topic") >>= dm.topic;
-    si.getMember("data") >>= dm.data;
+    si.getMember("topic") >>= dm._topic;
+    si.getMember("data") >>= dm._data;
 }
 
 }

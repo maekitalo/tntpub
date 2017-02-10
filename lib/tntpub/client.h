@@ -40,9 +40,7 @@ public:
 
     template <typename Obj> Client& sendMessage(const std::string& topic, const Obj& obj)
     {
-        DataMessage dataMessage;
-        dataMessage.topic = topic;
-        dataMessage.data <<= obj;
+        DataMessage dataMessage(topic, obj);
         return sendMessage(dataMessage);
     }
 

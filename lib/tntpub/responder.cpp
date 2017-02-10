@@ -53,40 +53,40 @@ void Responder::onInput(cxxtools::StreamBuffer& sb)
             if (_deserializer.advance(sb.sbumpc()))
             {
                 log_debug("message received: " << cxxtools::Json(_deserializer.si()).beautify(true));
-                if (_deserializer.si().typeName() == "DataMessage")
-                {
-                    DataMessage dataMessage;
-                    _deserializer.deserialize(dataMessage);
-
-                    log_debug("data message received; topic=\"" << dataMessage.topic << '"');
-
-                    _pubSubServer.processMessage(*this, dataMessage);
-                }
-                else if (_deserializer.si().typeName() == "SubscribeMessage")
+                if (_deserializer.si().typeName() == "SubscribeMessage")
                 {
                     SubscribeMessage subscribeMessage;
                     _deserializer.deserialize(subscribeMessage);
 
-                    log_info("subscribe topic \"" << subscribeMessage.topic << '"');
+                    log_info("subscribe topic \"" << subscribeMessage.topic() << '"');
 
-                    _topics.push_back(subscribeMessage.topic);
-                    _pubSubServer.clientSubscribed(*this, subscribeMessage.topic);
+                    _topics.push_back(subscribeMessage.topic());
+                    _pubSubServer.clientSubscribed(*this, subscribeMessage.topic());
                 }
                 else if (_deserializer.si().typeName() == "UnsubscribeMessage")
                 {
                     UnsubscribeMessage unsubscribeMessage;
                     _deserializer.deserialize(unsubscribeMessage);
 
-                    log_info("unsubscribe topic \"" << unsubscribeMessage.topic << '"');
+                    log_info("unsubscribe topic \"" << unsubscribeMessage.topic() << '"');
 
                     for (auto it = _topics.begin(); it != _topics.end(); ++it)
                     {
-                        if (*it == unsubscribeMessage.topic)
+                        if (*it == unsubscribeMessage.topic())
                         {
                             _topics.erase(it);
                             break;
                         }
                     }
+                }
+                else if (_deserializer.si().typeName() == "DataMessage")
+                {
+                    DataMessage dataMessage;
+                    _deserializer.deserialize(dataMessage);
+
+                    log_debug("data message received; topic=\"" << dataMessage.topic() << '"');
+
+                    _pubSubServer.processMessage(*this, dataMessage);
                 }
                 else
                 {
@@ -134,7 +134,7 @@ void Responder::onDataMessageReceived(const DataMessage& dataMessage)
 
     for (const auto& topic: _topics)
     {
-        if (dataMessage.topic == topic)
+        if (dataMessage.topic() == topic)
         {
             log_debug("send message to client");
             try
