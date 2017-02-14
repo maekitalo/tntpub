@@ -5,6 +5,7 @@
 
 #include <tntpub/server.h>
 #include <tntpub/datamessage.h>
+#include <tntpub/subscribemessage.h>
 #include <tntpub/responder.h>
 
 #include <cxxtools/eventloop.h>
@@ -17,9 +18,9 @@
 std::string persistantTopic;
 std::deque<tntpub::DataMessage> messages;
 
-void onClientSubscribed(tntpub::Responder& client, const std::string& topic)
+void onClientSubscribed(tntpub::Responder& client, const tntpub::SubscribeMessage& msg)
 {
-    if (topic == persistantTopic)
+    if (msg.topic() == persistantTopic)
     {
         for (const auto& dm: messages)
             client.onDataMessageReceived(dm);

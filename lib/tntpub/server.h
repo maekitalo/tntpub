@@ -17,6 +17,7 @@ namespace tntpub
 
 class Responder;
 class TcpResponder;
+class SubscribeMessage;
 
 ////////////////////////////////////////////////////////////////////////
 // Server
@@ -52,7 +53,7 @@ public:
 
     cxxtools::Signal<Responder&> clientConnected;
     cxxtools::Signal<Responder&> clientDisconnected;
-    cxxtools::Signal<Responder&, const std::string&> clientSubscribed;
+    cxxtools::Signal<Responder&, const SubscribeMessage&> clientSubscribed;
     cxxtools::Signal<const DataMessage&> messageReceived;
 };
 

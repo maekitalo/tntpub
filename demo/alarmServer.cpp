@@ -6,6 +6,7 @@
 #include <tntpub/server.h>
 #include <tntpub/responder.h>
 #include <tntpub/datamessage.h>
+#include <tntpub/subscribemessage.h>
 
 #include <cxxtools/eventloop.h>
 #include <cxxtools/arg.h>
@@ -24,7 +25,7 @@ class AlarmDaemon : public cxxtools::Connectable
     tntpub::Server _pubSubServer;
     std::vector<tntpub::AlarmMessage> _alarmMessages;
 
-    void onClientSubscribed(tntpub::Responder& client, const std::string& topic);
+    void onClientSubscribed(tntpub::Responder& client, const tntpub::SubscribeMessage& message);
     void onDataMessageReceived(const tntpub::DataMessage& msg);
 
 public:
@@ -39,9 +40,9 @@ AlarmDaemon::AlarmDaemon(cxxtools::EventLoop& eventLoop, std::string ip, unsigne
     cxxtools::connect(_pubSubServer.messageReceived, *this, &AlarmDaemon::onDataMessageReceived);
 }
 
-void AlarmDaemon::onClientSubscribed(tntpub::Responder& client, const std::string& topic)
+void AlarmDaemon::onClientSubscribed(tntpub::Responder& client, const tntpub::SubscribeMessage& message)
 {
-    if (topic == tntpub::alarmTopic)
+    if (message.topic() == tntpub::alarmTopic)
     {
         for (const auto&m: _alarmMessages)
             client.onDataMessageReceived(tntpub::DataMessage(tntpub::alarmTopic, m));
@@ -52,7 +53,7 @@ void AlarmDaemon::onDataMessageReceived(const tntpub::DataMessage& msg)
 {
     log_debug("message received: " << cxxtools::Json(msg));
 
-    if (msg.topic != tntpub::alarmTopic)
+    if (msg.topic() != tntpub::alarmTopic)
         return;
 
     if (msg.typeName() == tntpub::AlarmMessage::typeName)
