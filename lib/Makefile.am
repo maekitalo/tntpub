@@ -16,6 +16,7 @@ libtntpub_la_LIBADD = -lcxxtools -lcxxtools-bin
 nobase_include_HEADERS = \
 	tntpub/client.h \
 	tntpub/datamessage.h \
+	tntpub/messagesink.h \
 	tntpub/responder.h \
 	tntpub/server.h \
 	tntpub/subscribemessage.h \
