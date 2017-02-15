@@ -48,4 +48,9 @@ void Server::processMessage(Responder&, DataMessage& dataMessage)
     messageReceived(dataMessage);
 }
 
+void Server::doSendMessage(const DataMessage& msg)
+{
+    messageReceived(msg);
+}
+
 }

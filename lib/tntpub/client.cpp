@@ -41,12 +41,11 @@ Client& Client::unsubscribe(const std::string& topic)
     return *this;
 }
 
-Client& Client::sendMessage(const DataMessage& msg)
+void Client::doSendMessage(const DataMessage& msg)
 {
     log_debug("sendMessage " << cxxtools::Json(msg).beautify(true));
     *_peer << cxxtools::bin::Bin(msg);
     _peer->buffer().beginWrite();
-    return *this;
 }
 
 const DataMessage& Client::readMessage()

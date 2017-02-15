@@ -7,6 +7,7 @@
 #define TNTPUB_CLIENT_H
 
 #include <tntpub/datamessage.h>
+#include <tntpub/messagesink.h>
 #include <cxxtools/bin/deserializer.h>
 #include <cxxtools/signal.h>
 #include <cxxtools/iostream.h>
@@ -14,7 +15,7 @@
 
 namespace tntpub
 {
-class Client : public cxxtools::Connectable
+class Client : public MessageSink, public cxxtools::Connectable
 {
     cxxtools::IOStream* _peer;
     cxxtools::bin::Deserializer _deserializer;
@@ -36,13 +37,7 @@ public:
 
     Client& subscribe(const std::string& topic);
     Client& unsubscribe(const std::string& topic);
-    Client& sendMessage(const DataMessage& msg);
-
-    template <typename Obj> Client& sendMessage(const std::string& topic, const Obj& obj)
-    {
-        DataMessage dataMessage(topic, obj);
-        return sendMessage(dataMessage);
-    }
+    void doSendMessage(const DataMessage& msg);
 
     void flush()
     { _peer->flush(); }

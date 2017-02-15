@@ -6,7 +6,7 @@
 #ifndef TNTPUB_SERVER_H
 #define TNTPUB_SERVER_H
 
-#include <tntpub/datamessage.h>
+#include <tntpub/messagesink.h>
 
 #include <cxxtools/connectable.h>
 #include <cxxtools/signal.h>
@@ -22,7 +22,7 @@ class SubscribeMessage;
 ////////////////////////////////////////////////////////////////////////
 // Server
 //
-class Server : public cxxtools::Connectable
+class Server : public MessageSink, public cxxtools::Connectable
 {
     friend class Responder;
     friend class TcpResponder;
@@ -42,14 +42,7 @@ public:
 
     void listen(const std::string& ip, unsigned short port);
 
-    Server& sendMessage(const DataMessage& msg)
-        { messageReceived(msg); return *this; }
-
-    template <typename Obj> Server& sendMessage(const std::string& topic, const Obj& obj)
-    {
-        DataMessage dataMessage(topic, obj);
-        return sendMessage(dataMessage);
-    }
+    void doSendMessage(const DataMessage& msg);
 
     cxxtools::Signal<Responder&> clientConnected;
     cxxtools::Signal<Responder&> clientDisconnected;
