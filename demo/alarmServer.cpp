@@ -29,11 +29,11 @@ class AlarmDaemon : public cxxtools::Connectable
     void onDataMessageReceived(const tntpub::DataMessage& msg);
 
 public:
-    AlarmDaemon(cxxtools::EventLoop& eventLoop, std::string ip, unsigned short port);
+    AlarmDaemon(cxxtools::EventLoop& eventLoop, const std::string& ip, unsigned short port);
 
 };
 
-AlarmDaemon::AlarmDaemon(cxxtools::EventLoop& eventLoop, std::string ip, unsigned short port)
+AlarmDaemon::AlarmDaemon(cxxtools::EventLoop& eventLoop, const std::string& ip, unsigned short port)
     : _pubSubServer(eventLoop, ip, port)
 {
     cxxtools::connect(_pubSubServer.clientSubscribed, *this, &AlarmDaemon::onClientSubscribed);
