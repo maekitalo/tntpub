@@ -16,6 +16,9 @@ class TcpClient : public Client
     cxxtools::net::TcpStream _peer;
 
 public:
+    TcpClient()
+        { }
+
     explicit TcpClient(const std::string& ipaddr, unsigned short int port)
         : _peer(ipaddr, port)
         { init(_peer); }
