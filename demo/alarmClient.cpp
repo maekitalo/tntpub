@@ -5,7 +5,7 @@
 
 #include "alarmMessage.h"
 
-#include <tntpub/tcpclient.h>
+#include <tntpub/client.h>
 
 #include <cxxtools/arg.h>
 #include <cxxtools/log.h>
@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
         if (help)
             throw Usage();
 
-        tntpub::TcpClient client(ip, port);
+        tntpub::Client client(ip, port);
 
         if (commitMessage)
         {

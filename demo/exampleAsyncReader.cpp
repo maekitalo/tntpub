@@ -5,7 +5,7 @@
 
 #include "mymessage.h"
 
-#include <tntpub/tcpclient.h>
+#include <tntpub/client.h>
 
 #include <cxxtools/eventloop.h>
 #include <cxxtools/json.h>
@@ -14,21 +14,64 @@
 
 #include <exception>
 #include <iostream>
+#include <vector>
 
-cxxtools::EventLoop loop;
+class AsyncReader : public cxxtools::Connectable
+{
+    tntpub::Client _client;
+    std::vector<std::string> _topics;
+
+    void onConnected(tntpub::Client&);
+    void onCloseClient(tntpub::Client&);
+    void onMessageReceived(tntpub::DataMessage& message);
+
+public:
+    AsyncReader(cxxtools::EventLoop& eventLoop, const std::string& ip, unsigned short port);
+
+    // subscriptions are collected until the connection is set up
+    void subscribe(const std::string& topic)
+        { _topics.push_back(topic); }
+
+    // we define a signal, which tells, when the connection is closed
+    cxxtools::Signal<> exit;
+};
+
+AsyncReader::AsyncReader(cxxtools::EventLoop& eventLoop, const std::string& ip, unsigned short port)
+    : _client(&eventLoop)
+{
+    // connect signals to slots
+    cxxtools::connect(_client.connected, *this, &AsyncReader::onConnected);
+    cxxtools::connect(_client.closed, *this, &AsyncReader::onCloseClient);
+    cxxtools::connect(_client.messageReceived, *this, &AsyncReader::onMessageReceived);
+
+    // initiate connection
+    _client.beginConnect(ip, port);
+}
+
+void AsyncReader::onConnected(tntpub::Client&)
+{
+    // finalize connection
+    _client.endConnect();
+
+    // send subscribe messages
+    for (unsigned n = 0; n < _topics.size(); ++n)
+        _client.subscribe(_topics[n]);
+
+    std::cout << "connected" << std::endl;
+}
+
+// handler, which is called when the connection is closed by the server
+void AsyncReader::onCloseClient(tntpub::Client&)
+{
+    exit();
+}
 
 // handler, which is called when a message is received
-void onMessageReceived(tntpub::DataMessage& message)
+void AsyncReader::onMessageReceived(tntpub::DataMessage& message)
 {
     MyMessage msg;
     message.get(msg);
     std::cout << cxxtools::Json(msg).beautify(true);
-}
-
-// handler, which is called when the connection is closed by the server
-void onCloseClient(tntpub::Client&)
-{
-    loop.exit();
 }
 
 int main(int argc, char* argv[])
@@ -42,22 +85,20 @@ int main(int argc, char* argv[])
         cxxtools::Arg<std::string> ip(argc, argv, 'i');
         cxxtools::Arg<unsigned short> port(argc, argv, 'p', 9001);
 
-        // create transport object and client application
-        tntpub::TcpClient client(&loop, ip, port);
+        // we need a event loop
+        cxxtools::EventLoop eventLoop;
+
+        // create reader object
+        AsyncReader reader(eventLoop, ip, port);
+
+        cxxtools::connect(reader.exit, eventLoop, &cxxtools::EventLoop::exit);
 
         // subscribe to topics passed as arguments
         for (int a = 1; a < argc; ++a)
-            client.subscribe(argv[a]);
-
-        // we do not flush the output buffer since this is done
-        // asyncronously by the event loop
-
-        // connect signals to slots
-        cxxtools::connect(client.messageReceived, onMessageReceived);
-        cxxtools::connect(client.closed, onCloseClient);
+            reader.subscribe(argv[a]);
 
         // run the event loop
-        loop.run();
+        eventLoop.run();
     }
     catch (const std::exception& e)
     {

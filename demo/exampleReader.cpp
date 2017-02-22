@@ -5,7 +5,7 @@
 
 #include "mymessage.h"
 
-#include <tntpub/tcpclient.h>
+#include <tntpub/client.h>
 
 #include <cxxtools/json.h>
 #include <cxxtools/arg.h>
@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
         cxxtools::Arg<unsigned short> port(argc, argv, 'p', 9001);
 
         // create tcp client application
-        tntpub::TcpClient client(ip, port);
+        tntpub::Client client(ip, port);
 
         // subscribe to topics passed as arguments
         for (int a = 1; a < argc; ++a)

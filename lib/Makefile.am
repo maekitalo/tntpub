@@ -20,5 +20,4 @@ nobase_include_HEADERS = \
 	tntpub/responder.h \
 	tntpub/server.h \
 	tntpub/subscribemessage.h \
-	tntpub/tcpclient.h \
 	tntpub/unsubscribemessage.h

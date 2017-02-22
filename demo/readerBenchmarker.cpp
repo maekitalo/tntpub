@@ -5,7 +5,7 @@
 
 #include "mymessage.h"
 
-#include <tntpub/tcpclient.h>
+#include <tntpub/client.h>
 
 #include <cxxtools/clock.h>
 #include <cxxtools/arg.h>
@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
         cxxtools::Arg<std::string> ip(argc, argv, 'i');
         cxxtools::Arg<unsigned short> port(argc, argv, 'p', 9001);
 
-        tntpub::TcpClient client(ip, port);
+        tntpub::Client client(ip, port);
 
         for (int a = 1; a < argc; ++a)
             client.subscribe(argv[a]);

@@ -16,42 +16,47 @@ log_define("tntpub.client")
 namespace tntpub
 {
 
-void Client::init(cxxtools::IOStream& peer)
+void Client::init()
 {
-    _peer = &peer;
-    cxxtools::connect(_peer->buffer().outputReady, *this, &Client::onOutput);
-    cxxtools::connect(_peer->buffer().inputReady, *this, &Client::onInput);
+    cxxtools::connect(_peer.buffer().outputReady, *this, &Client::onOutput);
+    cxxtools::connect(_peer.buffer().inputReady, *this, &Client::onInput);
+    cxxtools::connect(_peer.connected, *this, &Client::onConnected);
+    cxxtools::connect(_peer.closed, *this, &Client::onClosed);
+}
+
+void Client::begin()
+{
     _deserializer.begin();
-    _peer->buffer().beginRead();
+    _peer.buffer().beginRead();
 }
 
 Client& Client::subscribe(const std::string& topic)
 {
     SubscribeMessage subscribeMessage(topic);
-    *_peer << cxxtools::bin::Bin(subscribeMessage);
-    _peer->buffer().beginWrite();
+    _peer << cxxtools::bin::Bin(subscribeMessage);
+    _peer.buffer().beginWrite();
     return *this;
 }
 
 Client& Client::unsubscribe(const std::string& topic)
 {
     UnsubscribeMessage unsubscribeMessage(topic);
-    *_peer << cxxtools::bin::Bin(unsubscribeMessage);
-    _peer->buffer().beginWrite();
+    _peer << cxxtools::bin::Bin(unsubscribeMessage);
+    _peer.buffer().beginWrite();
     return *this;
 }
 
 void Client::doSendMessage(const DataMessage& msg)
 {
     log_debug("sendMessage " << cxxtools::Json(msg).beautify(true));
-    *_peer << cxxtools::bin::Bin(msg);
-    _peer->buffer().beginWrite();
+    _peer << cxxtools::bin::Bin(msg);
+    _peer.buffer().beginWrite();
 }
 
 const DataMessage& Client::readMessage()
 {
     char ch;
-    while (_peer->get(ch))
+    while (_peer.get(ch))
     {
         if (_deserializer.advance(ch))
         {
@@ -68,9 +73,9 @@ const DataMessage& Client::readMessage()
 bool Client::advance()
 {
     log_debug("advance");
-    while (_peer->rdbuf()->in_avail())
+    while (_peer.rdbuf()->in_avail())
     {
-        char ch = _peer->rdbuf()->sbumpc();
+        char ch = _peer.rdbuf()->sbumpc();
 
         if (_deserializer.advance(ch))
         {
@@ -83,6 +88,16 @@ bool Client::advance()
     }
 
     return false;
+}
+
+void Client::onConnected(cxxtools::net::TcpStream&)
+{
+    connected(*this);
+}
+
+void Client::onClosed(cxxtools::net::TcpStream&)
+{
+    closed(*this);
 }
 
 void Client::onOutput(cxxtools::StreamBuffer& sb)

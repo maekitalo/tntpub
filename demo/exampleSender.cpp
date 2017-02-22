@@ -5,7 +5,7 @@
 
 #include "mymessage.h"
 
-#include <tntpub/tcpclient.h>
+#include <tntpub/client.h>
 
 #include <cxxtools/json.h>
 #include <cxxtools/arg.h>
@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
 
         std::string topic = argv[1];
 
-        tntpub::TcpClient client(ip, port);
+        tntpub::Client client(ip, port);
 
         MyMessage msg;
 
