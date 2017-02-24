@@ -8,6 +8,7 @@
 
 #include <tntpub/datamessage.h>
 #include <tntpub/messagesink.h>
+#include <tntpub/serviceprocedure.h>
 #include <cxxtools/bin/deserializer.h>
 #include <cxxtools/signal.h>
 #include <cxxtools/net/tcpstream.h>
@@ -19,15 +20,36 @@ class Client : public MessageSink, public cxxtools::Connectable
     cxxtools::net::TcpStream _peer;
     cxxtools::bin::Deserializer _deserializer;
     DataMessage _dataMessage;
+    struct Slot
+    {
+        std::string topic;
+        ServiceProcedure* proc;
+        Slot() : proc(0) { }
+        Slot(const std::string& topic_, ServiceProcedure* proc_)
+            : topic(topic_),
+              proc(proc_)
+              { }
+    };
+
+    std::vector<Slot> _callbacks;
 
     void onConnected(cxxtools::net::TcpStream&);
     void onClosed(cxxtools::net::TcpStream&);
     void onOutput(cxxtools::StreamBuffer& sb);
     void onInput(cxxtools::StreamBuffer& sb);
     void doSendMessage(const DataMessage& msg);
+    void dispatchMessage(const DataMessage& msg);
 
     void init();
     void begin();
+
+#if __cplusplus >= 201103L
+    Client(Client&) = delete;
+    Client& operator=(Client&) = delete;
+#else
+    Client(Client&) { }
+    Client& operator=(Client&) { return *this; }
+#endif
 
 public:
     explicit Client(cxxtools::SelectorBase* selector = 0)
@@ -60,6 +82,8 @@ public:
         init();
         begin();
     }
+
+    ~Client();
 
     void setSelector(cxxtools::SelectorBase* selector)
         { _peer.attachedDevice()->setSelector(selector); }
@@ -106,6 +130,16 @@ public:
     template <typename Obj> void readMessage(Obj& obj)
     {
         readMessage().get(obj);
+    }
+
+    template <typename A> void registerFunction(const std::string& topic, void (*fn)(A))
+    {
+        _callbacks.push_back(Slot(topic, new ServiceFunction<A>(fn)));
+    }
+
+    template <typename A, class C> void registerMethod(const std::string& topic, C& obj, void (C::*method)(A))
+    {
+        _callbacks.push_back(Slot(topic, new ServiceMethod<A, C>(obj, method)));
     }
 
     cxxtools::Signal<Client&> connected;

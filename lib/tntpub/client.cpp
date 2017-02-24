@@ -16,6 +16,12 @@ log_define("tntpub.client")
 namespace tntpub
 {
 
+Client::~Client()
+{
+    for (unsigned n = 0; n < _callbacks.size(); ++n)
+        delete _callbacks[n].proc;
+}
+
 void Client::init()
 {
     cxxtools::connect(_peer.buffer().outputReady, *this, &Client::onOutput);
@@ -53,6 +59,16 @@ void Client::doSendMessage(const DataMessage& msg)
     _peer.buffer().beginWrite();
 }
 
+void Client::dispatchMessage(const DataMessage& msg)
+{
+    messageReceived(_dataMessage);
+    for (unsigned n = 0; n < _callbacks.size(); ++n)
+    {
+        if (_callbacks[n].topic == msg.topic())
+            _callbacks[n].proc->invoke(msg);
+    }
+}
+
 const DataMessage& Client::readMessage()
 {
     char ch;
@@ -61,7 +77,7 @@ const DataMessage& Client::readMessage()
         if (_deserializer.advance(ch))
         {
             _deserializer.deserialize(_dataMessage);
-            messageReceived(_dataMessage);
+            dispatchMessage(_dataMessage);
             _deserializer.begin();
             return _dataMessage;
         }
@@ -81,7 +97,7 @@ bool Client::advance()
         {
             log_debug("got message");
             _deserializer.deserialize(_dataMessage);
-            messageReceived(_dataMessage);
+            dispatchMessage(_dataMessage);
             _deserializer.begin();
             return true;
         }

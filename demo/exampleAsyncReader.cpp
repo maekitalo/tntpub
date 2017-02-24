@@ -24,6 +24,7 @@ class AsyncReader : public cxxtools::Connectable
     void onConnected(tntpub::Client&);
     void onCloseClient(tntpub::Client&);
     void onMessageReceived(tntpub::DataMessage& message);
+    void onMyMessageReceived(MyMessage message);
 
 public:
     AsyncReader(cxxtools::EventLoop& eventLoop, const std::string& ip, unsigned short port);
@@ -43,6 +44,10 @@ AsyncReader::AsyncReader(cxxtools::EventLoop& eventLoop, const std::string& ip, 
     cxxtools::connect(_client.connected, *this, &AsyncReader::onConnected);
     cxxtools::connect(_client.closed, *this, &AsyncReader::onCloseClient);
     cxxtools::connect(_client.messageReceived, *this, &AsyncReader::onMessageReceived);
+
+    // register callback methods
+    // we want to call the method when a object of type "MyMessage" is sent to the topic "foobar"
+    _client.registerMethod("foobar", *this, &AsyncReader::onMyMessageReceived);
 
     // initiate connection
     _client.beginConnect(ip, port);
@@ -72,6 +77,11 @@ void AsyncReader::onMessageReceived(tntpub::DataMessage& message)
     MyMessage msg;
     message.get(msg);
     std::cout << cxxtools::Json(msg).beautify(true);
+}
+
+void AsyncReader::onMyMessageReceived(MyMessage message)
+{
+    std::cout << "MyMessage received; text=\"" << message.text << "\" number=" << message.number << std::endl;
 }
 
 int main(int argc, char* argv[])
