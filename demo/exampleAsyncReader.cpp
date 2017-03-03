@@ -24,7 +24,7 @@ class AsyncReader : public cxxtools::Connectable
     void onConnected(tntpub::Client&);
     void onCloseClient(tntpub::Client&);
     void onMessageReceived(tntpub::DataMessage& message);
-    void onMyMessageReceived(MyMessage message);
+    void onMyMessageReceived(const MyMessage& message);
 
 public:
     AsyncReader(cxxtools::EventLoop& eventLoop, const std::string& ip, unsigned short port);
@@ -79,7 +79,7 @@ void AsyncReader::onMessageReceived(tntpub::DataMessage& message)
     std::cout << cxxtools::Json(msg).beautify(true);
 }
 
-void AsyncReader::onMyMessageReceived(MyMessage message)
+void AsyncReader::onMyMessageReceived(const MyMessage& message)
 {
     std::cout << "MyMessage received; text=\"" << message.text << "\" number=" << message.number << std::endl;
 }

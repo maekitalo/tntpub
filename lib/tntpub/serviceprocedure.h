@@ -2,6 +2,7 @@
 #define TNTPUB_SERVICEPROCEDURE_H
 
 #include <cxxtools/serializationerror.h>
+#include <cxxtools/typetraits.h>
 #include <tntpub/datamessage.h>
 
 namespace tntpub
@@ -26,7 +27,7 @@ public:
 
     virtual void invoke(const DataMessage& dm)
     {
-        A arg;
+        typename cxxtools::TypeTraits<A>::Value arg;
         try
         {
             dm.get(arg);
@@ -55,7 +56,7 @@ public:
 
     virtual void invoke(const DataMessage& dm)
     {
-        A arg;
+        typename cxxtools::TypeTraits<A>::Value arg;
         try
         {
             dm.get(arg);
