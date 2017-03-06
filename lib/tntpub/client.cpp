@@ -122,6 +122,8 @@ void Client::onOutput(cxxtools::StreamBuffer& sb)
     sb.endWrite();
     if (sb.out_avail())
         sb.beginWrite();
+    else
+        messagesSent(*this);
 }
 
 void Client::onInput(cxxtools::StreamBuffer& sb)

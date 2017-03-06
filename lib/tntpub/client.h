@@ -145,6 +145,7 @@ public:
     cxxtools::Signal<Client&> connected;
     cxxtools::Signal<DataMessage&> messageReceived;
     cxxtools::Signal<Client&> closed;
+    cxxtools::Signal<Client&> messagesSent;
 };
 
 }
