@@ -64,7 +64,8 @@ void Client::dispatchMessage(const DataMessage& msg)
     messageReceived(_dataMessage);
     for (unsigned n = 0; n < _callbacks.size(); ++n)
     {
-        if (_callbacks[n].topic == msg.topic())
+        if (_callbacks[n].topic.empty()
+         || _callbacks[n].topic == msg.topic())
             _callbacks[n].proc->invoke(msg);
     }
 }
