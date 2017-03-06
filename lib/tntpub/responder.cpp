@@ -52,7 +52,6 @@ void Responder::onInput(cxxtools::StreamBuffer& sb)
         {
             if (_deserializer.advance(sb.sbumpc()))
             {
-                log_debug("message received: " << cxxtools::Json(_deserializer.si()).beautify(true));
                 if (_deserializer.si().typeName() == "SubscribeMessage")
                 {
                     SubscribeMessage subscribeMessage;
@@ -84,7 +83,7 @@ void Responder::onInput(cxxtools::StreamBuffer& sb)
                     DataMessage dataMessage;
                     _deserializer.deserialize(dataMessage);
 
-                    log_debug("data message received; topic=\"" << dataMessage.topic() << '"');
+                    log_debug("data message received: " << cxxtools::Json(_deserializer.si()).beautify(true));
 
                     _pubSubServer.processMessage(*this, dataMessage);
                 }
