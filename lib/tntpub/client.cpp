@@ -54,7 +54,7 @@ Client& Client::unsubscribe(const std::string& topic)
 
 void Client::doSendMessage(const DataMessage& msg)
 {
-    log_debug("sendMessage " << cxxtools::Json(msg).beautify(true));
+    log_debug("sendMessage of type <" << msg.typeName() << ">:\n" << cxxtools::Json(msg).beautify(true));
     _peer << cxxtools::bin::Bin(msg);
     _peer.buffer().beginWrite();
 }
@@ -96,8 +96,11 @@ bool Client::advance()
 
         if (_deserializer.advance(ch))
         {
-            log_debug("got message");
             _deserializer.deserialize(_dataMessage);
+
+            log_debug("got message of type <" << _dataMessage.typeName() << ">:\n"
+                << cxxtools::Json(_dataMessage).beautify(true));
+
             dispatchMessage(_dataMessage);
             _deserializer.begin();
             return true;
