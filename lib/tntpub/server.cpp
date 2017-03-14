@@ -45,12 +45,12 @@ void Server::onConnectionPending(cxxtools::net::TcpServer&)
 
 void Server::processMessage(Responder&, DataMessage& dataMessage)
 {
-    messageReceived(dataMessage);
+    dispatchMessage(dataMessage);
 }
 
 void Server::doSendMessage(const DataMessage& msg)
 {
-    messageReceived(msg);
+    dispatchMessage(msg);
 }
 
 }

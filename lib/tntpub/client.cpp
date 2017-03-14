@@ -16,12 +16,6 @@ log_define("tntpub.client")
 namespace tntpub
 {
 
-Client::~Client()
-{
-    for (unsigned n = 0; n < _callbacks.size(); ++n)
-        delete _callbacks[n].proc;
-}
-
 void Client::init()
 {
     cxxtools::connect(_peer.buffer().outputReady, *this, &Client::onOutput);
@@ -57,17 +51,6 @@ void Client::doSendMessage(const DataMessage& msg)
     log_debug("sendMessage of type <" << msg.typeName() << ">:\n" << cxxtools::Json(msg).beautify(true));
     _peer << cxxtools::bin::Bin(msg);
     _peer.buffer().beginWrite();
-}
-
-void Client::dispatchMessage(const DataMessage& msg)
-{
-    messageReceived(_dataMessage);
-    for (unsigned n = 0; n < _callbacks.size(); ++n)
-    {
-        if (_callbacks[n].topic.empty()
-         || _callbacks[n].topic == msg.topic())
-            _callbacks[n].proc->invoke(msg);
-    }
 }
 
 const DataMessage& Client::readMessage()
