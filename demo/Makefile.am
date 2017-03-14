@@ -40,3 +40,4 @@ alarmServer_SOURCES = \
 
 AM_CPPFLAGS = -I$(top_srcdir)/lib
 LDADD = $(top_builddir)/lib/libtntpub.la
+EXTRA_DIST = README
