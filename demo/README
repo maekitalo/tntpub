@@ -1,0 +1,35 @@
+Running the reader and writer demo
+==================================
+
+The demo directory shows how to implement a sender and a receiver.  The
+receiver is implemented in 2 variants. One uses syncronous (blocking)
+communication while the other runs non blocking in the cxxtools event loop,
+which processes events.
+
+To run the demo a server is first needed. Run the `tntpubserver` from the
+server directory in a terminal:
+
+    cd /my/tntpub/directory/server
+    ./tntpubserver
+
+In another terminal start a reader from the demo directory. The readers expect
+one or more topic names on the command line. The messages are printed in json
+format to standard output.  We use _foobar_ as the topic name here:
+
+    cd /my/tntpub/directory/demo
+    ./exampleReader foobar   # or ./exampleAsyncReader foobar
+
+A third terminal is needed to send a messsage. The message description can be
+found in the header file `mymessage.h`. The sender reads messages in json
+format from the standard input and sends it to the topic specified on the
+command line. So we run:
+
+    cd /my/tntpub/directory/demo
+    echo '{text:"Hallo",number:42}'|./exampleSender foobar
+
+We should see the message in the terminal where we started our reader. If we
+have multiple terminals with readers we see the message in all of them.
+
+To send multiple messages at once you may use the shell for that:
+
+    for ((i = 0; i < 100; ++i)); do echo '{text:"Hallo",number:'$i'}'; done|./exampleSender foobar
