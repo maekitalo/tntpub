@@ -7,7 +7,7 @@
 #define TNTPUB_CLIENT_H
 
 #include <tntpub/datamessage.h>
-#include <tntpub/messagesink.h>
+#include <tntpub/messagesinksource.h>
 #include <tntpub/serviceprocedure.h>
 #include <cxxtools/bin/deserializer.h>
 #include <cxxtools/signal.h>
@@ -15,7 +15,7 @@
 
 namespace tntpub
 {
-class Client : public MessageSink, public cxxtools::Connectable
+class Client : public MessageSinkSource, public cxxtools::Connectable
 {
     cxxtools::net::TcpStream _peer;
     cxxtools::bin::Deserializer _deserializer;
@@ -156,7 +156,6 @@ public:
     }
 
     cxxtools::Signal<Client&> connected;
-    cxxtools::Signal<DataMessage&> messageReceived;
     cxxtools::Signal<Client&> closed;
     cxxtools::Signal<Client&> messagesSent;
 };

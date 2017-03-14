@@ -23,7 +23,7 @@ class AsyncReader : public cxxtools::Connectable
 
     void onConnected(tntpub::Client&);
     void onCloseClient(tntpub::Client&);
-    void onMessageReceived(tntpub::DataMessage& message);
+    void onMessageReceived(const tntpub::DataMessage& message);
     void onMyMessageReceived(const MyMessage& message);
 
 public:
@@ -72,7 +72,7 @@ void AsyncReader::onCloseClient(tntpub::Client&)
 }
 
 // handler, which is called when a message is received
-void AsyncReader::onMessageReceived(tntpub::DataMessage& message)
+void AsyncReader::onMessageReceived(const tntpub::DataMessage& message)
 {
     MyMessage msg;
     message.get(msg);

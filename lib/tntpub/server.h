@@ -6,7 +6,7 @@
 #ifndef TNTPUB_SERVER_H
 #define TNTPUB_SERVER_H
 
-#include <tntpub/messagesink.h>
+#include <tntpub/messagesinksource.h>
 
 #include <cxxtools/connectable.h>
 #include <cxxtools/signal.h>
@@ -22,7 +22,7 @@ class SubscribeMessage;
 ////////////////////////////////////////////////////////////////////////
 // Server
 //
-class Server : public MessageSink, public cxxtools::Connectable
+class Server : public MessageSinkSource, public cxxtools::Connectable
 {
     friend class Responder;
     friend class TcpResponder;
@@ -47,7 +47,6 @@ public:
     cxxtools::Signal<Responder&> clientConnected;
     cxxtools::Signal<Responder&> clientDisconnected;
     cxxtools::Signal<Responder&, const SubscribeMessage&> clientSubscribed;
-    cxxtools::Signal<const DataMessage&> messageReceived;
 };
 
 }

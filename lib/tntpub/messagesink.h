@@ -5,6 +5,7 @@
 
 namespace tntpub
 {
+/// Interface class for objects, which can send data messages
 class MessageSink
 {
     virtual void doSendMessage(const DataMessage& msg) = 0;

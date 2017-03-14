@@ -23,7 +23,7 @@ cxxtools::Timespan lastT;
 cxxtools::Timespan nextT;
 unsigned count;
 
-void onMessageReceived(tntpub::DataMessage& message)
+void onMessageReceived(const tntpub::DataMessage& message)
 {
     MyMessage msg;
     message.get(msg);
