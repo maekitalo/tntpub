@@ -37,6 +37,7 @@ Makefile
 *~
 .dirstamp
 server/tntpubserver
+server/tntpubsender
 demo/alarmClient
 demo/alarmServer
 demo/exampleAsyncReader
