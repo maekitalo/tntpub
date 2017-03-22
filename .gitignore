@@ -17,6 +17,8 @@
 /config.status
 
 /m4/*.m4
+!/m4/ax_check_compile_flag.m4
+!/m4/ax_cxx_compile_stdcxx_11.m4
 
 /config.h
 /config.h.in
