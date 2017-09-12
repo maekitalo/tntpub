@@ -55,10 +55,9 @@ void Client::doSendMessage(const DataMessage& msg)
 
 const DataMessage& Client::readMessage()
 {
-    char ch;
-    while (_peer.get(ch))
+    while (_peer.peek() != std::ios::traits_type::eof())
     {
-        if (_deserializer.advance(ch))
+        if (_deserializer.advance(_peer.buffer()))
         {
             _deserializer.deserialize(_dataMessage);
             dispatchMessage(_dataMessage);
@@ -73,21 +72,16 @@ const DataMessage& Client::readMessage()
 bool Client::advance()
 {
     log_debug("advance");
-    while (_peer.rdbuf()->in_avail())
+    if (_deserializer.advance(_peer.buffer()))
     {
-        char ch = _peer.rdbuf()->sbumpc();
+        _deserializer.deserialize(_dataMessage);
 
-        if (_deserializer.advance(ch))
-        {
-            _deserializer.deserialize(_dataMessage);
+        log_debug("got message of type <" << _dataMessage.typeName() << ">:\n"
+            << cxxtools::Json(_dataMessage).beautify(true));
 
-            log_debug("got message of type <" << _dataMessage.typeName() << ">:\n"
-                << cxxtools::Json(_dataMessage).beautify(true));
-
-            dispatchMessage(_dataMessage);
-            _deserializer.begin();
-            return true;
-        }
+        dispatchMessage(_dataMessage);
+        _deserializer.begin();
+        return true;
     }
 
     return false;
