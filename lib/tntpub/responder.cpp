@@ -24,8 +24,15 @@ namespace tntpub
 //
 Responder::Responder(Server& pubSubServer)
     : _stream(0),
-      _pubSubServer(pubSubServer)
+      _pubSubServer(pubSubServer),
+      _sentry(0)
 {
+}
+
+Responder::~Responder()
+{
+    if (_sentry)
+        _sentry->detach();
 }
 
 void Responder::init(cxxtools::IOStream& stream)
@@ -43,6 +50,8 @@ void Responder::init(cxxtools::IOStream& stream)
 void Responder::onInput(cxxtools::StreamBuffer& sb)
 {
     log_debug("input detected " << static_cast<void*>(this));
+
+    DestructionSentry sentry(this);
 
     try
     {
@@ -91,6 +100,9 @@ void Responder::onInput(cxxtools::StreamBuffer& sb)
                 log_warn("unknown message type \"" << _deserializer.si().typeName() << '"');
             }
 
+            if (sentry.deleted())
+                return;
+
             _deserializer.begin();
         }
 
@@ -127,7 +139,7 @@ void Responder::onOutput(cxxtools::StreamBuffer& sb)
 
 void Responder::onDataMessageReceived(const DataMessage& dataMessage)
 {
-    log_debug("check topics");
+    log_debug(static_cast<const void*>(this) << " check topic \"" << dataMessage.topic() << '"');
 
     for (const auto& topic: _topics)
     {

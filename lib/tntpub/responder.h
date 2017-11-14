@@ -29,9 +29,28 @@ class Server;
 //
 class Responder : public cxxtools::Connectable
 {
+    class DestructionSentry
+    {
+        bool _deleted;
+        Responder* _responder;
+
+    public:
+        explicit DestructionSentry(Responder* responder)
+            : _deleted(false),
+              _responder(responder)
+            { _responder->_sentry = this; }
+
+        ~DestructionSentry()
+            { if (!_deleted) _responder->_sentry = 0; }
+
+        void detach()         { _deleted = true; }
+        bool deleted() const  { return _deleted; }
+    };
+
     cxxtools::IOStream* _stream;
     Server& _pubSubServer;
     cxxtools::bin::Deserializer _deserializer;
+    DestructionSentry* _sentry;
 
     std::vector<std::string> _topics;
 
@@ -42,6 +61,7 @@ class Responder : public cxxtools::Connectable
 
 protected:
     void init(cxxtools::IOStream& stream);
+    ~Responder();
 
 public:
     explicit Responder(Server& pubSubServer);
