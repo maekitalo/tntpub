@@ -114,7 +114,8 @@ void Responder::onInput(cxxtools::StreamBuffer& sb)
     catch (const std::exception& e)
     {
         log_debug("exception while reading: " << e.what());
-        closeClient();
+        if (!sentry.deleted())
+            closeClient();
     }
 }
 
