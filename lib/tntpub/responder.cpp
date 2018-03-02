@@ -9,6 +9,7 @@
 #include <tntpub/subscribemessage.h>
 #include <tntpub/unsubscribemessage.h>
 
+#include <cxxtools/ioerror.h>
 #include <cxxtools/bin/bin.h>
 #include <cxxtools/json.h>
 
@@ -113,7 +114,7 @@ void Responder::onInput(cxxtools::StreamBuffer& sb)
     }
     catch (const std::exception& e)
     {
-        log_debug("exception while reading: " << e.what());
+        log_warn("failed to read message: " << e.what());
         if (!sentry.deleted())
             closeClient();
     }
