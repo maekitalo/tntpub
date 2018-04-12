@@ -101,7 +101,19 @@ void Client::onClosed(cxxtools::net::TcpStream&)
 void Client::onOutput(cxxtools::StreamBuffer& sb)
 {
     log_debug("onOutput");
-    sb.endWrite();
+    try
+    {
+        sb.endWrite();
+    }
+    catch (const std::exception& e)
+    {
+        log_warn("output failed: " << e.what());
+        sb.discard();
+        _peer.close();
+        closed(*this);
+        return;
+    }
+
     if (sb.out_avail())
         sb.beginWrite();
     else
