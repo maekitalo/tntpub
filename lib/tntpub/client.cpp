@@ -123,7 +123,20 @@ void Client::onOutput(cxxtools::StreamBuffer& sb)
 void Client::onInput(cxxtools::StreamBuffer& sb)
 {
     log_debug("onInput");
-    sb.endRead();
+
+    try
+    {
+        sb.endRead();
+    }
+    catch (const std::exception& e)
+    {
+        log_warn("read failed: " << e.what());
+        sb.discard();
+        _peer.close();
+        closed(*this);
+        return;
+    }
+
     while (true)
     {
         auto n = sb.in_avail();
