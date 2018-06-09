@@ -22,7 +22,8 @@ class DataMessage
     friend void operator>>= (const cxxtools::SerializationInfo& si, DataMessage& dm);
 
     std::string _topic;
-    cxxtools::SerializationInfo _data;
+    std::string _rawdata;
+    mutable cxxtools::SerializationInfo _data;
 
 protected:
     explicit DataMessage(const std::string& topic)
@@ -47,16 +48,43 @@ public:
     { return _topic; }
 
     /// Returns the data of the message.
-    const cxxtools::SerializationInfo& data() const
-    { return _data; }
+    const cxxtools::SerializationInfo& data() const;
 
     /// Deserializes the object carried by this data message.
     template <typename Obj> void get(Obj& obj) const
-    { _data >>= obj; }
+    { data() >>= obj; }
 
     /// Returns the type name of the data object.
     const std::string& typeName() const
-    { return _data.typeName(); }
+    { return data().typeName(); }
+};
+
+/** This class helps visualising a data message.
+ *
+ *  The data message serializes the data as a binary string. This makes
+ *  it difficult to see, what is inside e.g. for logging. This class helps
+ *  by deserializing the data when serializing and serializing the deserialized
+ *  raw data.
+ *
+ *  Example:
+ *  @code
+ *      tntpub::DataMessage dm("someTopic", aObject);
+ *      log_debug(cxxtools::Json(tntpub::DataMessageView(dm)).beautify(true));
+ *  @endcode
+ *
+ *  In the example above a datamessage is wrapped by the view and the passed
+ *  to the json serializer helper, which outputs the message as json.
+*/
+
+class DataMessageView
+{
+    friend void operator<<= (cxxtools::SerializationInfo& si, const DataMessageView& dv);
+    const DataMessage& _dm;
+
+public:
+    DataMessageView(const DataMessage& dm)
+        : _dm(dm)
+        { }
 };
 
 }

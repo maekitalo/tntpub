@@ -92,7 +92,7 @@ void Responder::onInput(cxxtools::StreamBuffer& sb)
                 _deserializer.deserialize(dataMessage);
 
                 log_debug("data message of type <" << dataMessage.typeName() << "> to topic <" << dataMessage.topic() << "> received");
-                log_finer(cxxtools::Json(_deserializer.si()).beautify(true));
+                log_finer(cxxtools::Json(DataMessageView(dataMessage)).beautify(true));
 
                 _pubSubServer.processMessage(*this, dataMessage);
             }
