@@ -42,9 +42,14 @@ void operator>>= (const cxxtools::SerializationInfo& si, DataMessage& dm)
     si.getMember("topic") >>= dm._topic;
     const cxxtools::SerializationInfo* pi = si.findMember("rawdata");
     if (pi)
+    {
         *pi >>= dm._rawdata;
+        dm._data = cxxtools::SerializationInfo();
+    }
     else
+    {
         si.getMember("data") >>= dm._data;
+    }
 }
 
 void operator<<= (cxxtools::SerializationInfo& si, const DataMessageView& dv)

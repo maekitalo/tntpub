@@ -62,6 +62,7 @@ const DataMessage& Client::readMessage()
         {
             _deserializer.deserialize(_dataMessage);
             dispatchMessage(_dataMessage);
+            _dataMessage = DataMessage();
             _deserializer.begin();
             return _dataMessage;
         }
@@ -81,6 +82,7 @@ bool Client::advance()
         log_finer(cxxtools::Json(_dataMessage).beautify(true));
 
         dispatchMessage(_dataMessage);
+        _dataMessage = DataMessage();
         _deserializer.begin();
         return true;
     }
