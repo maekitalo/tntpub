@@ -1,5 +1,5 @@
 AC_INIT([tntpub], [0.3], [tommi@tntnet.org])
-AM_INIT_AUTOMAKE([foreign])
+AM_INIT_AUTOMAKE
 LT_INIT
 
 AC_CONFIG_MACRO_DIR([m4])
