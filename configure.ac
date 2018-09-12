@@ -24,4 +24,5 @@ AC_OUTPUT([
     lib/Makefile
     server/Makefile
     demo/Makefile
+    pkgconfig/tntpub.pc
 ])
