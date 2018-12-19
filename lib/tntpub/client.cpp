@@ -56,13 +56,13 @@ void Client::doSendMessage(const DataMessage& msg)
 
 const DataMessage& Client::readMessage()
 {
+    _dataMessage = DataMessage();
     while (_peer.peek() != std::ios::traits_type::eof())
     {
         if (_deserializer.advance(_peer.buffer()))
         {
             _deserializer.deserialize(_dataMessage);
             dispatchMessage(_dataMessage);
-            _dataMessage = DataMessage();
             _deserializer.begin();
             return _dataMessage;
         }
