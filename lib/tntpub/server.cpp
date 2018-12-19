@@ -45,7 +45,7 @@ void Server::onConnectionPending(cxxtools::net::TcpServer&)
 
 void Server::processMessage(Responder&, DataMessage& dataMessage)
 {
-    dispatchMessage(dataMessage);
+    doSendMessage(dataMessage);
 }
 
 void Server::doSendMessage(const DataMessage& msg)
