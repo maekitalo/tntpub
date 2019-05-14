@@ -1,4 +1,4 @@
-AC_INIT([tntpub], [0.3], [tommi@tntnet.org])
+AC_INIT(tntpub, 0.3, [Tommi Maekitalo <tommi@tntnet.org>])
 AM_INIT_AUTOMAKE
 LT_INIT
 
