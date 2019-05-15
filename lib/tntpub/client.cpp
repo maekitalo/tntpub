@@ -110,15 +110,8 @@ void Client::onOutput(cxxtools::StreamBuffer& sb)
     catch (const std::exception& e)
     {
         log_warn("output failed: " << e.what());
-        try
-        {
-            sb.discard();
-        }
-        catch (const std::exception& e)
-        {
-            log_debug("ignoring exception from discard: " << e.what());
-        }
-
+        sb.device()->cancel();
+        sb.discard();
         _peer.close();
         closed(*this);
         return;
@@ -147,15 +140,8 @@ void Client::onInput(cxxtools::StreamBuffer& sb)
     catch (const std::exception& e)
     {
         log_warn("read failed: " << e.what());
-        try
-        {
-            sb.discard();
-        }
-        catch (const std::exception& e)
-        {
-            log_debug("ignoring exception from discard: " << e.what());
-        }
-
+        sb.device()->cancel();
+        sb.discard();
         _peer.close();
         closed(*this);
         return;
