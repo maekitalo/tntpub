@@ -110,16 +110,30 @@ void Client::onOutput(cxxtools::StreamBuffer& sb)
     catch (const std::exception& e)
     {
         log_warn("output failed: " << e.what());
-        sb.discard();
+        try
+        {
+            sb.discard();
+        }
+        catch (const std::exception& e)
+        {
+            log_debug("ignoring exception from discard: " << e.what());
+        }
+
         _peer.close();
         closed(*this);
         return;
     }
 
     if (sb.out_avail())
+    {
+        log_debug("continue writing");
         sb.beginWrite();
+    }
     else
+    {
+        log_debug("all messages sent");
         messagesSent(*this);
+    }
 }
 
 void Client::onInput(cxxtools::StreamBuffer& sb)
@@ -133,7 +147,15 @@ void Client::onInput(cxxtools::StreamBuffer& sb)
     catch (const std::exception& e)
     {
         log_warn("read failed: " << e.what());
-        sb.discard();
+        try
+        {
+            sb.discard();
+        }
+        catch (const std::exception& e)
+        {
+            log_debug("ignoring exception from discard: " << e.what());
+        }
+
         _peer.close();
         closed(*this);
         return;
