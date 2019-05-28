@@ -1,13 +1,13 @@
-#ifndef TNTPUB_MESSAGESINKSOURCE_H
-#define TNTPUB_MESSAGESINKSOURCE_H
+#ifndef TNTPUB_MESSAGESOURCESOURCE_H
+#define TNTPUB_MESSAGESOURCESOURCE_H
 
-#include <tntpub/messagesink.h>
 #include <tntpub/messagesource.h>
+#include <tntpub/messagesink.h>
 
 namespace tntpub
 {
 /// Interface class which combines message sink and message source interfaces.
-class MessageSinkSource : public MessageSink, public MessageSource
+class MessageSinkSource : public MessageSource, public MessageSink
 {
 };
 }

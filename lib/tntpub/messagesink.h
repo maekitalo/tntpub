@@ -2,29 +2,61 @@
 #define TNTPUB_MESSAGESINK_H
 
 #include <tntpub/datamessage.h>
+#include <tntpub/serviceprocedure.h>
+
+#include <cxxtools/signal.h>
+
+#include <vector>
 
 namespace tntpub
 {
-/// Interface class for objects, which can send data messages
+/// Interface class for objects, which receive data messages
 class MessageSink
 {
-    virtual void doSendMessage(const DataMessage& msg) = 0;
+    struct Slot
+    {
+        std::string topic;
+        ServiceProcedure* proc;
+        Slot() : proc(0) { }
+        Slot(const std::string& topic_, ServiceProcedure* proc_)
+            : topic(topic_),
+              proc(proc_)
+              { }
+        explicit Slot(ServiceProcedure* proc_)
+            : proc(proc_)
+              { }
+    };
+
+    std::vector<Slot> _callbacks;
+
+protected:
+    void dispatchMessage(const DataMessage& msg);
 
 public:
-    MessageSink& sendMessage(const DataMessage& msg)
+    ~MessageSink();
+
+    template <typename A> void registerFunction(const std::string& topic, void (*fn)(A))
     {
-        doSendMessage(msg);
-        return *this;
+        _callbacks.push_back(Slot(topic, new ServiceFunction<A>(fn)));
     }
 
-    template <typename Obj> MessageSink& sendMessage(const std::string& topic, const Obj& obj)
+    template <typename A, class C> void registerMethod(const std::string& topic, C& obj, void (C::*method)(A))
     {
-        DataMessage msg(topic, obj);
-        doSendMessage(msg);
-        return *this;
+        _callbacks.push_back(Slot(topic, new ServiceMethod<A, C>(obj, method)));
     }
+
+    template <typename A> void registerFunction(void (*fn)(A))
+    {
+        _callbacks.push_back(Slot(new ServiceFunction<A>(fn)));
+    }
+
+    template <typename A, class C> void registerMethod(C& obj, void (C::*method)(A))
+    {
+        _callbacks.push_back(Slot(new ServiceMethod<A, C>(obj, method)));
+    }
+
+    cxxtools::Signal<const DataMessage&> messageReceived;
 };
-
 }
 
 #endif

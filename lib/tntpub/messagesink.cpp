@@ -1,14 +1,14 @@
-#include <tntpub/messagesource.h>
+#include <tntpub/messagesink.h>
 
 namespace tntpub
 {
-MessageSource::~MessageSource()
+MessageSink::~MessageSink()
 {
     for (unsigned n = 0; n < _callbacks.size(); ++n)
         delete _callbacks[n].proc;
 }
 
-void MessageSource::dispatchMessage(const DataMessage& msg)
+void MessageSink::dispatchMessage(const DataMessage& msg)
 {
     messageReceived(msg);
     for (unsigned n = 0; n < _callbacks.size(); ++n)

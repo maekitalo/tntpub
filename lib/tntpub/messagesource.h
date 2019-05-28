@@ -2,61 +2,29 @@
 #define TNTPUB_MESSAGESOURCE_H
 
 #include <tntpub/datamessage.h>
-#include <tntpub/serviceprocedure.h>
-
-#include <cxxtools/signal.h>
-
-#include <vector>
 
 namespace tntpub
 {
-/// Interface class for objects, which receive data messages
+/// Interface class for objects, which can send data messages
 class MessageSource
 {
-    struct Slot
-    {
-        std::string topic;
-        ServiceProcedure* proc;
-        Slot() : proc(0) { }
-        Slot(const std::string& topic_, ServiceProcedure* proc_)
-            : topic(topic_),
-              proc(proc_)
-              { }
-        explicit Slot(ServiceProcedure* proc_)
-            : proc(proc_)
-              { }
-    };
-
-    std::vector<Slot> _callbacks;
-
-protected:
-    void dispatchMessage(const DataMessage& msg);
+    virtual void doSendMessage(const DataMessage& msg) = 0;
 
 public:
-    ~MessageSource();
-
-    template <typename A> void registerFunction(const std::string& topic, void (*fn)(A))
+    MessageSource& sendMessage(const DataMessage& msg)
     {
-        _callbacks.push_back(Slot(topic, new ServiceFunction<A>(fn)));
+        doSendMessage(msg);
+        return *this;
     }
 
-    template <typename A, class C> void registerMethod(const std::string& topic, C& obj, void (C::*method)(A))
+    template <typename Obj> MessageSource& sendMessage(const std::string& topic, const Obj& obj)
     {
-        _callbacks.push_back(Slot(topic, new ServiceMethod<A, C>(obj, method)));
+        DataMessage msg(topic, obj);
+        doSendMessage(msg);
+        return *this;
     }
-
-    template <typename A> void registerFunction(void (*fn)(A))
-    {
-        _callbacks.push_back(Slot(new ServiceFunction<A>(fn)));
-    }
-
-    template <typename A, class C> void registerMethod(C& obj, void (C::*method)(A))
-    {
-        _callbacks.push_back(Slot(new ServiceMethod<A, C>(obj, method)));
-    }
-
-    cxxtools::Signal<const DataMessage&> messageReceived;
 };
+
 }
 
 #endif

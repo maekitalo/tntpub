@@ -5,7 +5,7 @@ lib_LTLIBRARIES = libtntpub.la
 libtntpub_la_SOURCES = \
 	tntpub/client.cpp \
 	tntpub/datamessage.cpp \
-	tntpub/messagesource.cpp \
+	tntpub/messagesink.cpp \
 	tntpub/responder.cpp \
 	tntpub/server.cpp \
 	tntpub/subscribemessage.cpp \
