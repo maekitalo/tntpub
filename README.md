@@ -1,7 +1,7 @@
-Tntpubsub
-=========
+Tntpub
+======
 
-Tntpubsub implements a publish subcribe pattern.  A client can subscribe to a
+Tntpub implements a publish subcribe pattern.  A client can subscribe to a
 topic, which is just a string and will receive any messages sent to that topic
 by other clients (or itself).  The server is very simple and needs no
 configuration since topics exist if there are subscribers to that. Messages
