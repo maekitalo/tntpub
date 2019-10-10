@@ -32,10 +32,14 @@ void Client::begin()
 
 Client& Client::subscribe(const std::string& topic)
 {
-    SubscribeMessage subscribeMessage(topic);
+    doSubscribe(SubscribeMessage(topic));
+    return *this;
+}
+
+void Client::doSubscribe(const SubscribeMessage& subscribeMessage)
+{
     _peer << cxxtools::bin::Bin(subscribeMessage);
     _peer.buffer().beginWrite();
-    return *this;
 }
 
 Client& Client::unsubscribe(const std::string& topic)
