@@ -8,7 +8,11 @@ tntpubserver_SOURCES = \
 
 tntpubserver_LDADD = $(top_builddir)/lib/libtntpub.la
 
+tntpubserver_LDFLAGS = -lcxxtools
+
 tntpubsender_SOURCES = \
 	tntpubsender.cpp
 
-tntpubsender_LDADD = $(top_builddir)/lib/libtntpub.la
+LDADD = $(top_builddir)/lib/libtntpub.la -lcxxtools
+
+tntpubsender_LDFLAGS = -lcxxtools
