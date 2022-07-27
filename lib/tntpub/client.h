@@ -92,6 +92,9 @@ public:
     void close()
     { _peer.close(); }
 
+    bool isConnected() const
+    { return _peer.isConnected(); }
+
     // subscribe to topic
     Client& subscribe(const std::string& topic);
 
