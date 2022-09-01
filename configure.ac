@@ -1,4 +1,4 @@
-AC_INIT([tntpub],[0.5],[Tommi Maekitalo <tommi@tntnet.org>])
+AC_INIT(tntpub, 0.5, [Tommi Maekitalo <tommi@tntnet.org>])
 AM_INIT_AUTOMAKE
 LT_INIT
 
@@ -19,11 +19,10 @@ AC_CHECK_HEADER([cxxtools/mutex.h], , AC_MSG_ERROR([cxxtools headers not found])
 AX_CHECK_COMPILE_FLAG([-Wall], [CPPFLAGS="$CPPFLAGS -Wall"])
 AX_CHECK_COMPILE_FLAG([-pedantic], [CPPFLAGS="$CPPFLAGS -pedantic"])
 
-AC_CONFIG_FILES([
+AC_OUTPUT([
     Makefile
     lib/Makefile
     server/Makefile
     demo/Makefile
     pkgconfig/tntpub.pc
 ])
-AC_OUTPUT
