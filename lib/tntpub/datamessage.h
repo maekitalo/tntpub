@@ -7,6 +7,8 @@
 #define TNTPUB_DATAMESSAGE_H
 
 #include <cxxtools/serializationinfo.h>
+#include <cxxtools/clock.h>
+#include <cxxtools/datetime.h>
 #include <string>
 
 namespace tntpub
@@ -22,6 +24,7 @@ class DataMessage
     friend void operator>>= (const cxxtools::SerializationInfo& si, DataMessage& dm);
 
     std::string _topic;
+    cxxtools::UtcDateTime _createTime;
     std::string _rawdata;
     mutable cxxtools::SerializationInfo _data;
 
@@ -38,7 +41,8 @@ public:
     /// The object is serialized using cxxtools serialization.
     template <typename Obj>
     DataMessage(const std::string& topic, const Obj& obj)
-        : _topic(topic)
+        : _topic(topic),
+          _createTime(cxxtools::Clock::getSystemTime())
     {
         _data <<= obj;
     }
@@ -46,6 +50,10 @@ public:
     /// Returns the topic where the message is sent through.
     const std::string& topic() const
     { return _topic; }
+
+    /// Returns the time, when the data message is created and hence initially received.
+    const cxxtools::UtcDateTime& createTime() const
+    { return _createTime; }
 
     /// Returns the data of the message.
     const cxxtools::SerializationInfo& data() const;
