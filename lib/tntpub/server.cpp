@@ -40,7 +40,12 @@ void Server::listen(const std::string& ip, unsigned short port)
 
 void Server::onConnectionPending(cxxtools::net::TcpServer&)
 {
-    clientConnected(*new TcpResponder(*this));
+    clientConnected(*createResponder());
+}
+
+Responder* Server::createResponder()
+{
+    return new TcpResponder(*this);
 }
 
 void Server::processMessage(Responder&, DataMessage& dataMessage)

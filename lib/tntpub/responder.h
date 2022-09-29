@@ -6,6 +6,7 @@
 #ifndef TNTPUB_RESPONDER_H
 #define TNTPUB_RESPONDER_H
 
+#include <tntpub/subscription.h>
 #include <cxxtools/connectable.h>
 #include <cxxtools/signal.h>
 
@@ -19,6 +20,7 @@ namespace tntpub
 {
 
 class DataMessage;
+class SubscribeMessage;
 class Server;
 
 ////////////////////////////////////////////////////////////////////////
@@ -63,8 +65,13 @@ protected:
     void init(cxxtools::IOStream& stream);
     ~Responder();
 
+    virtual void subscribeMessageReceived(const SubscribeMessage& subscribeMessage);
+
 public:
     explicit Responder(Server& pubSubServer);
+
+    void subscribe(const SubscribeMessage& subscribeMessage);
+    void subscribe(const std::string& topic, Subscription::Type type = Subscription::Type::Full);
 
     void onDataMessageReceived(const DataMessage&);
 

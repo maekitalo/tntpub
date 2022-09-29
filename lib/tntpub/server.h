@@ -33,6 +33,9 @@ class Server : public MessageSinkSource, public cxxtools::Connectable
 
     virtual void processMessage(Responder& client, DataMessage& dataMessage);
 
+protected:
+    virtual Responder* createResponder();
+
 public:
     Server(cxxtools::SelectorBase& selector);
     Server(cxxtools::SelectorBase& selector, const std::string& ip, unsigned short port);

@@ -48,6 +48,24 @@ void Responder::init(cxxtools::IOStream& stream)
     _deserializer.begin();
 }
 
+void Responder::subscribeMessageReceived(const SubscribeMessage& subscribeMessage)
+{
+    subscribe(subscribeMessage);
+}
+
+void Responder::subscribe(const SubscribeMessage& subscribeMessage)
+{
+    log_info("subscribe topic \"" << subscribeMessage.topic() << '"');
+
+    _subscriptions.emplace_back(subscribeMessage.topic(), subscribeMessage.type());
+    _pubSubServer.clientSubscribed(*this, subscribeMessage);
+}
+
+void Responder::subscribe(const std::string& topic, Subscription::Type type)
+{
+    subscribe(SubscribeMessage(topic, type));
+}
+
 void Responder::onInput(cxxtools::StreamBuffer& sb)
 {
     log_debug("input detected " << static_cast<void*>(this));
@@ -64,11 +82,7 @@ void Responder::onInput(cxxtools::StreamBuffer& sb)
             {
                 SubscribeMessage subscribeMessage;
                 _deserializer.deserialize(subscribeMessage);
-
-                log_info("subscribe topic \"" << subscribeMessage.topic() << '"');
-
-                _topics.push_back(subscribeMessage.topic());
-                _pubSubServer.clientSubscribed(*this, subscribeMessage);
+                subscribeMessageReceived(subscribeMessage);
             }
             else if (_deserializer.si().typeName() == "UnsubscribeMessage")
             {
