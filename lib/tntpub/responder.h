@@ -52,7 +52,7 @@ class Responder : public cxxtools::Connectable
     cxxtools::bin::Deserializer _deserializer;
     DestructionSentry* _sentry;
 
-    std::vector<std::string> _topics;
+    std::vector<Subscription> _subscriptions;
 
     void onInput(cxxtools::StreamBuffer&);
     void onOutput(cxxtools::StreamBuffer&);

@@ -30,9 +30,9 @@ void Client::begin()
     _peer.buffer().beginRead();
 }
 
-Client& Client::subscribe(const std::string& topic)
+Client& Client::subscribe(const std::string& topic, Subscription::Type type)
 {
-    doSubscribe(SubscribeMessage(topic));
+    doSubscribe(SubscribeMessage(topic, type));
     return *this;
 }
 

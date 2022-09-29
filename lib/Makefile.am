@@ -9,6 +9,7 @@ libtntpub_la_SOURCES = \
 	tntpub/responder.cpp \
 	tntpub/server.cpp \
 	tntpub/subscribemessage.cpp \
+	tntpub/subscription.cpp \
 	tntpub/unsubscribemessage.cpp
 
 libtntpub_la_LDFLAGS = -version-info @sonumber@
@@ -24,4 +25,5 @@ nobase_include_HEADERS = \
 	tntpub/server.h \
 	tntpub/serviceprocedure.h \
 	tntpub/subscribemessage.h \
+	tntpub/subscription.h \
 	tntpub/unsubscribemessage.h

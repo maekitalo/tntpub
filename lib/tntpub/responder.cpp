@@ -77,11 +77,11 @@ void Responder::onInput(cxxtools::StreamBuffer& sb)
 
                 log_info("unsubscribe topic \"" << unsubscribeMessage.topic() << '"');
 
-                for (auto it = _topics.begin(); it != _topics.end(); ++it)
+                for (auto it = _subscriptions.begin(); it != _subscriptions.end(); ++it)
                 {
-                    if (*it == unsubscribeMessage.topic())
+                    if (it->equals(unsubscribeMessage.topic()))
                     {
-                        _topics.erase(it);
+                        _subscriptions.erase(it);
                         break;
                     }
                 }
@@ -143,9 +143,9 @@ void Responder::onDataMessageReceived(const DataMessage& dataMessage)
 {
     log_debug(static_cast<const void*>(this) << " check topic \"" << dataMessage.topic() << '"');
 
-    for (const auto& topic: _topics)
+    for (const auto& subscription: _subscriptions)
     {
-        if (dataMessage.topic() == topic)
+        if (subscription.match(dataMessage.topic()))
         {
             log_debug("send message to client");
             try

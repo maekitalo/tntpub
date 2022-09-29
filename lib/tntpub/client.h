@@ -8,6 +8,7 @@
 
 #include <tntpub/datamessage.h>
 #include <tntpub/subscribemessage.h>
+#include <tntpub/subscription.h>
 #include <tntpub/messagesinksource.h>
 #include <cxxtools/bin/deserializer.h>
 #include <cxxtools/signal.h>
@@ -31,13 +32,8 @@ class Client : public MessageSinkSource, public cxxtools::Connectable
     void begin();
     void doSubscribe(const SubscribeMessage& subscribeMessage);
 
-#if __cplusplus >= 201103L
     Client(Client&) = delete;
     Client& operator=(Client&) = delete;
-#else
-    Client(Client&) { }
-    Client& operator=(Client&) { return *this; }
-#endif
 
 public:
     explicit Client(cxxtools::SelectorBase* selector = 0)
@@ -96,12 +92,12 @@ public:
     { return _peer.isConnected(); }
 
     // subscribe to topic
-    Client& subscribe(const std::string& topic);
+    Client& subscribe(const std::string& topic, Subscription::Type type = Subscription::Type::Full);
 
     // subscribe to topic with additional information
     template <typename Obj>
-    Client& subscribe(const std::string& topic, const Obj& obj)
-    { doSubscribe(SubscribeMessage(topic, obj)); return *this; }
+    Client& subscribe(const std::string& topic, const Obj& obj, Subscription::Type type = Subscription::Type::Full)
+    { doSubscribe(SubscribeMessage(topic, obj, type)); return *this; }
 
     Client& unsubscribe(const std::string& topic);
 

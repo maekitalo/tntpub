@@ -3,10 +3,12 @@
 
 #include <tntpub/datamessage.h>
 #include <tntpub/serviceprocedure.h>
+#include <tntpub/subscription.h>
 
 #include <cxxtools/signal.h>
 
 #include <vector>
+#include <memory>
 
 namespace tntpub
 {
@@ -15,15 +17,14 @@ class MessageSink
 {
     struct Slot
     {
-        std::string topic;
-        ServiceProcedure* proc;
-        Slot() : proc(0) { }
-        Slot(const std::string& topic_, ServiceProcedure* proc_)
-            : topic(topic_),
-              proc(proc_)
+        Subscription topic;
+        std::unique_ptr<ServiceProcedure> proc;
+        Slot(Subscription&& topic_, ServiceProcedure* proc_)
+            : topic(std::move(topic_)),
+              proc(std::unique_ptr<ServiceProcedure>(proc_))
               { }
         explicit Slot(ServiceProcedure* proc_)
-            : proc(proc_)
+            : proc(std::unique_ptr<ServiceProcedure>(proc_))
               { }
     };
 
@@ -33,26 +34,24 @@ protected:
     void dispatchMessage(const DataMessage& msg);
 
 public:
-    ~MessageSink();
-
-    template <typename A> void registerFunction(const std::string& topic, void (*fn)(A))
+    template <typename A> void registerFunction(Subscription&& topic, void (*fn)(A))
     {
-        _callbacks.push_back(Slot(topic, new ServiceFunction<A>(fn)));
+        _callbacks.emplace_back(std::move(topic), new ServiceFunction<A>(fn));
     }
 
-    template <typename A, class C> void registerMethod(const std::string& topic, C& obj, void (C::*method)(A))
+    template <typename A, class C> void registerMethod(Subscription&& topic, C& obj, void (C::*method)(A))
     {
-        _callbacks.push_back(Slot(topic, new ServiceMethod<A, C>(obj, method)));
+        _callbacks.emplace_back(std::move(topic), new ServiceMethod<A, C>(obj, method));
     }
 
     template <typename A> void registerFunction(void (*fn)(A))
     {
-        _callbacks.push_back(Slot(new ServiceFunction<A>(fn)));
+        _callbacks.emplace_back(new ServiceFunction<A>(fn));
     }
 
     template <typename A, class C> void registerMethod(C& obj, void (C::*method)(A))
     {
-        _callbacks.push_back(Slot(new ServiceMethod<A, C>(obj, method)));
+        _callbacks.emplace_back(new ServiceMethod<A, C>(obj, method));
     }
 
     cxxtools::Signal<const DataMessage&> messageReceived;
