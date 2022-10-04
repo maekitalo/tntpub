@@ -9,6 +9,7 @@ noinst_PROGRAMS = \
 	readerBenchmarker \
 	readerBenchmarkerAsync \
 	recoverQueue \
+	recoverServer \
 	alarmClient \
 	alarmServer
 
@@ -53,6 +54,11 @@ alarmServer_SOURCES = \
 	alarmServer.cpp
 
 alarmServer_LDFLAGS = -lcxxtools
+
+recoverServer_SOURCES = \
+    recoverServer.cpp
+
+recoverServer_LDFLAGS = -lcxxtools
 
 AM_CPPFLAGS = -I$(top_srcdir)/lib
 LDADD = $(top_builddir)/lib/libtntpub.la

@@ -63,7 +63,7 @@ class Responder : public cxxtools::Connectable
 
 protected:
     void init(cxxtools::IOStream& stream);
-    ~Responder();
+    virtual ~Responder();
 
     virtual void subscribeMessageReceived(const SubscribeMessage& subscribeMessage);
 
@@ -73,7 +73,11 @@ public:
     void subscribe(const SubscribeMessage& subscribeMessage);
     void subscribe(const std::string& topic, Subscription::Type type = Subscription::Type::Full);
 
+    bool isSubscribed(const std::string& topic);
+    const std::vector<Subscription>& subscriptions() const  { return _subscriptions; }
+
     void onDataMessageReceived(const DataMessage&);
+    void sendMessage(const DataMessage& dataMessage);
 
     cxxtools::StreamBuffer& buffer()
     { return _stream->buffer(); }

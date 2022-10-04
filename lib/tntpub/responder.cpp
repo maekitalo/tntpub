@@ -50,6 +50,7 @@ void Responder::init(cxxtools::IOStream& stream)
 
 void Responder::subscribeMessageReceived(const SubscribeMessage& subscribeMessage)
 {
+    log_info("subscribe message received");
     subscribe(subscribeMessage);
 }
 
@@ -153,30 +154,37 @@ void Responder::onOutput(cxxtools::StreamBuffer& sb)
     }
 }
 
-void Responder::onDataMessageReceived(const DataMessage& dataMessage)
+bool Responder::isSubscribed(const std::string& topic)
 {
-    log_debug(static_cast<const void*>(this) << " check topic \"" << dataMessage.topic() << '"');
+    log_debug(static_cast<const void*>(this) << " check topic \"" << topic << '"');
 
     for (const auto& subscription: _subscriptions)
-    {
-        if (subscription.match(dataMessage.topic()))
-        {
-            log_debug("send message to client");
-            try
-            {
-                *_stream << cxxtools::bin::Bin(dataMessage);
-                _stream->buffer().beginWrite();
-            }
-            catch (const std::exception& e)
-            {
-                log_debug("exception while writing: " << e.what());
-                closeClient();
-            }
-            return;
-        }
-    }
+        if (subscription.match(topic))
+            return true;
 
     log_debug("topic not subscribed");
+    return false;
+}
+
+void Responder::onDataMessageReceived(const DataMessage& dataMessage)
+{
+    if (isSubscribed(dataMessage.topic()))
+        sendMessage(dataMessage);
+}
+
+void Responder::sendMessage(const DataMessage& dataMessage)
+{
+    log_debug("send message to client");
+    try
+    {
+        *_stream << cxxtools::bin::Bin(dataMessage);
+        _stream->buffer().beginWrite();
+    }
+    catch (const std::exception& e)
+    {
+        log_debug("exception while writing: " << e.what());
+        closeClient();
+    }
 }
 
 void Responder::closeClient()
