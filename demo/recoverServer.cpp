@@ -11,6 +11,7 @@
 
 #include <vector>
 #include <deque>
+#include <map>
 
 log_define("recoverServer")
 
@@ -66,11 +67,11 @@ class RecoverResponder : public tntpub::TcpResponder
 
     struct RecoverChannel
     {
-        std::string topic;
-        unsigned pos;
+        std::string _topic;
+        unsigned _pos;
 
-        explicit RecoverChannel(const std::string& t, unsigned p = 0)
-            : topic(t), pos(p)
+        explicit RecoverChannel(const std::string& topic, unsigned pos)
+            : _topic(topic), _pos(pos)
             { }
     };
 
@@ -126,6 +127,8 @@ void RecoverResponder::subscribeMessageReceived(const tntpub::SubscribeMessage& 
         topic = sm[1];
         auto pos = cxxtools::convert<unsigned>(sm[2]);
 
+        log_debug("topic=" << topic << " recovery position=" << pos);
+
         auto it = _server.messages().find(topic);
 
         if (it == _server.messages().end())
@@ -146,6 +149,7 @@ void RecoverResponder::subscribeMessageReceived(const tntpub::SubscribeMessage& 
     }
     else
     {
+        log_debug("no match");
         subscribe(subscribeMessage);
     }
 }
@@ -158,19 +162,19 @@ void RecoverResponder::onOutputBufferEmpty(tntpub::Responder&)
     while (!_recoverPositions.empty() && count < 10)
     {
         auto& r = _recoverPositions[0];
-        auto it = _server.messages().find(r.topic);
+        auto it = _server.messages().find(r._topic);
 
-        if (it == _server.messages().end() || r.pos >= it->second.size())
+        if (it == _server.messages().end() || r._pos >= it->second.size())
         {
             // when that topic is recovered, start the actual subscription
             // and remove the recovery item
-            subscribe(r.topic);
+            subscribe(r._topic);
             _recoverPositions.pop_front();
         }
         else
         {
             // send and increment the position
-            sendMessage(it->second[r.pos++]);
+            sendMessage(it->second[r._pos++]);
             ++count;
         }
     }
