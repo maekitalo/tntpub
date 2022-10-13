@@ -22,10 +22,11 @@ int main(int argc, char* argv[])
 
         cxxtools::Arg<std::string> ip(argc, argv, 'i');
         cxxtools::Arg<unsigned short> port(argc, argv, 'p', 9001);
+        cxxtools::Arg<unsigned> count(argc, argv, 'n', 1);
 
         if (argc != 2)
         {
-            std::cerr << "usage: " << argv[0] << " [-i ip] [-p port] topic\n";
+            std::cerr << "usage: " << argv[0] << " [-i ip] [-p port] [-n count] topic\n";
             return 1;
         }
 
@@ -40,7 +41,10 @@ int main(int argc, char* argv[])
             // read messages from cin until it fails
 
             while (std::cin >> cxxtools::Json(msg))
-                client.sendMessage(topic, msg);
+            {
+                for (unsigned n = 0; n < count; ++n)
+                    client.sendMessage(topic, msg);
+            }
         }
         catch (const cxxtools::SerializationError&)
         {
