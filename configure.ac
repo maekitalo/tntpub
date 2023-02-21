@@ -1,4 +1,4 @@
-AC_INIT(tntpub, 0.5, [Tommi Maekitalo <tommi@tntnet.org>])
+AC_INIT(tntpub, 1.0, [Tommi Maekitalo <tommi@tntnet.org>])
 AM_INIT_AUTOMAKE
 LT_INIT
 
@@ -15,7 +15,7 @@ AC_LANG(C++)
 AX_CXX_COMPILE_STDCXX_11(noext)
 
 AC_CONFIG_HEADERS([config.h])
-AC_CHECK_HEADER([cxxtools/mutex.h], , AC_MSG_ERROR([cxxtools headers not found]))
+AC_CHECK_HEADER([cxxtools/serializationinfo.h], , AC_MSG_ERROR([cxxtools headers not found]))
 AX_CHECK_COMPILE_FLAG([-Wall], [CPPFLAGS="$CPPFLAGS -Wall"])
 AX_CHECK_COMPILE_FLAG([-pedantic], [CPPFLAGS="$CPPFLAGS -pedantic"])
 
