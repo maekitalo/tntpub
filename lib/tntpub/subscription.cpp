@@ -8,11 +8,11 @@ class Subscription::Impl
 {
     std::string _data;
 public:
-    Impl(const std::string& data)
+    explicit Impl(const std::string& data)
         : _data(data)
         { }
 
-    virtual ~Impl() { }
+    virtual ~Impl() = default;
     virtual bool match(const std::string& topic) const = 0;
 
     const std::string& data() const    { return  _data; }

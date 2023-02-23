@@ -40,6 +40,8 @@ public:
     Server(cxxtools::SelectorBase& selector);
     Server(cxxtools::SelectorBase& selector, const std::string& ip, unsigned short port);
 
+    virtual ~Server() = default;
+
     cxxtools::SelectorBase* selector()
         { return _server.selector(); }
 

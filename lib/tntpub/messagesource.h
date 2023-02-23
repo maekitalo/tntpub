@@ -11,6 +11,8 @@ class MessageSource
     virtual void doSendMessage(const DataMessage& msg) = 0;
 
 public:
+    virtual ~MessageSource() = default;
+
     MessageSource& sendMessage(const DataMessage& msg)
     {
         doSendMessage(msg);

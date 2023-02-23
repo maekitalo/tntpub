@@ -11,7 +11,7 @@ namespace tntpub
 class ServiceProcedure
 {
 public:
-    virtual ~ServiceProcedure() { }
+    virtual ~ServiceProcedure() = default;
     virtual void invoke(const DataMessage&) = 0;
 };
 
