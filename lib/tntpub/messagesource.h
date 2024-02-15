@@ -21,7 +21,7 @@ public:
 
     template <typename Obj> MessageSource& sendMessage(const std::string& topic, const Obj& obj)
     {
-        DataMessage msg(topic, obj);
+        auto msg = DataMessage::create(topic, obj);
         doSendMessage(msg);
         return *this;
     }

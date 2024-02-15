@@ -7,20 +7,17 @@
 #define TNTPUB_RESPONDER_H
 
 #include <tntpub/subscription.h>
+#include <tntpub/datamessage.h>
 #include <cxxtools/connectable.h>
 #include <cxxtools/signal.h>
 
-#include <cxxtools/bin/deserializer.h>
-
-#include <cxxtools/net/tcpstream.h>
+#include <cxxtools/net/tcpsocket.h>
 
 #include <vector>
 
 namespace tntpub
 {
 
-class DataMessage;
-class SubscribeMessage;
 class Server;
 
 ////////////////////////////////////////////////////////////////////////
@@ -49,28 +46,33 @@ class Responder : public cxxtools::Connectable
         bool deleted() const  { return _deleted; }
     };
 
-    cxxtools::IOStream* _stream;
+    DataMessageDeserializer _deserializer;
+
+    std::vector<char> _inputBuffer;
+    std::vector<char> _outputBuffer;
+    std::vector<char> _outputBufferNext;
+
     Server& _pubSubServer;
-    cxxtools::bin::Deserializer _deserializer;
+    cxxtools::net::TcpSocket _socket;
     DestructionSentry* _sentry;
 
     std::vector<Subscription> _subscriptions;
 
-    void onInput(cxxtools::StreamBuffer&);
-    void onOutput(cxxtools::StreamBuffer&);
+    void onInput(cxxtools::IODevice&);
+    void onOutput(cxxtools::IODevice&);
 
     void closeClient();
+    void beginRead();
 
 protected:
-    void init(cxxtools::IOStream& stream);
     virtual ~Responder();
 
-    virtual void subscribeMessageReceived(const SubscribeMessage& subscribeMessage);
+    virtual void subscribeMessageReceived(const DataMessage& subscribeMessage);
 
 public:
     explicit Responder(Server& pubSubServer);
 
-    void subscribe(const SubscribeMessage& subscribeMessage);
+    void subscribe(const DataMessage& subscribeMessage);
     void subscribe(const std::string& topic, Subscription::Type type = Subscription::Type::Full);
 
     bool isSubscribed(const std::string& topic);
@@ -79,19 +81,8 @@ public:
     void onDataMessageReceived(const DataMessage&);
     void sendMessage(const DataMessage& dataMessage);
 
-    cxxtools::StreamBuffer& buffer()
-    { return _stream->buffer(); }
-
     // signals that all messages has been sent to the peer
     cxxtools::Signal<Responder&> outputBufferEmpty;
-};
-
-class TcpResponder : public Responder
-{
-    cxxtools::net::TcpStream _netstream;
-
-public:
-    explicit TcpResponder(Server& pubSubServer);
 };
 
 }

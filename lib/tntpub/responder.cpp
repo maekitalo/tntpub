@@ -6,8 +6,6 @@
 #include <tntpub/responder.h>
 #include <tntpub/server.h>
 #include <tntpub/datamessage.h>
-#include <tntpub/subscribemessage.h>
-#include <tntpub/unsubscribemessage.h>
 
 #include <cxxtools/ioerror.h>
 #include <cxxtools/bin/bin.h>
@@ -17,17 +15,24 @@
 
 log_define("tntpub.responder")
 
+static const unsigned inputBufferSize = 8192;
+
 namespace tntpub
 {
-
 ////////////////////////////////////////////////////////////////////////
 // Responder
 //
 Responder::Responder(Server& pubSubServer)
-    : _stream(0),
+    : _inputBuffer(inputBufferSize),
       _pubSubServer(pubSubServer),
+      _socket(pubSubServer._server),
       _sentry(0)
 {
+    _socket.setSelector(_pubSubServer.selector());
+    cxxtools::connect(_socket.inputReady, *this, &Responder::onInput);
+    cxxtools::connect(_socket.outputReady, *this, &Responder::onOutput);
+    cxxtools::connect(_pubSubServer.messageReceived, *this, &Responder::onDataMessageReceived);
+    _socket.beginRead(_inputBuffer.data(), _inputBuffer.size());
 }
 
 Responder::~Responder()
@@ -36,38 +41,26 @@ Responder::~Responder()
         _sentry->detach();
 }
 
-void Responder::init(cxxtools::IOStream& stream)
-{
-    _stream = &stream;
-    _stream->buffer().device()->setSelector(_pubSubServer.selector());
-    cxxtools::connect(_stream->buffer().inputReady, *this, &Responder::onInput);
-    cxxtools::connect(_stream->buffer().outputReady, *this, &Responder::onOutput);
-    cxxtools::connect(_pubSubServer.messageReceived, *this, &Responder::onDataMessageReceived);
-
-    _stream->buffer().beginRead();
-    _deserializer.begin();
-}
-
-void Responder::subscribeMessageReceived(const SubscribeMessage& subscribeMessage)
+void Responder::subscribeMessageReceived(const DataMessage& subscribeMessage)
 {
     log_info("subscribe message received");
     subscribe(subscribeMessage);
 }
 
-void Responder::subscribe(const SubscribeMessage& subscribeMessage)
+void Responder::subscribe(const DataMessage& subscribeMessage)
 {
     log_info("subscribe topic \"" << subscribeMessage.topic() << '"');
 
-    _subscriptions.emplace_back(subscribeMessage.topic(), subscribeMessage.type());
+    _subscriptions.emplace_back(subscribeMessage.topic(), static_cast<Subscription::Type>(subscribeMessage.type()));
     _pubSubServer.clientSubscribed(*this, subscribeMessage);
 }
 
 void Responder::subscribe(const std::string& topic, Subscription::Type type)
 {
-    subscribe(SubscribeMessage(topic, type));
+    subscribe(DataMessage::subscribe(topic, type));
 }
 
-void Responder::onInput(cxxtools::StreamBuffer& sb)
+void Responder::onInput(cxxtools::IODevice&)
 {
     log_debug("input detected " << static_cast<void*>(this));
 
@@ -75,57 +68,44 @@ void Responder::onInput(cxxtools::StreamBuffer& sb)
 
     try
     {
-        sb.endRead();
-
-        while (_deserializer.advance(sb))
-        {
-            if (_deserializer.si().typeName() == "SubscribeMessage")
+        auto count = _socket.endRead();
+        _deserializer.advance(_inputBuffer.data(), count, [this, &sentry] (DataMessage& dataMessage) {
+            log_debug("process data message " << cxxtools::Json(dataMessage));
+            if (dataMessage.isSubscribeMessage())
             {
-                SubscribeMessage subscribeMessage;
-                _deserializer.deserialize(subscribeMessage);
-                subscribeMessageReceived(subscribeMessage);
+                subscribeMessageReceived(dataMessage);
             }
-            else if (_deserializer.si().typeName() == "UnsubscribeMessage")
+            else if (dataMessage.isUnsubscribeMessage())
             {
-                UnsubscribeMessage unsubscribeMessage;
-                _deserializer.deserialize(unsubscribeMessage);
-
-                log_info("unsubscribe topic \"" << unsubscribeMessage.topic() << '"');
+                log_info("unsubscribe topic \"" << dataMessage.topic() << '"');
 
                 for (auto it = _subscriptions.begin(); it != _subscriptions.end(); ++it)
                 {
-                    if (it->equals(unsubscribeMessage.topic()))
+                    if (it->equals(dataMessage.topic()))
                     {
                         _subscriptions.erase(it);
                         break;
                     }
                 }
             }
-            else if (_deserializer.si().typeName() == "DataMessage")
+            else if (dataMessage.isDataMessage())
             {
-                DataMessage dataMessage;
-                _deserializer.deserialize(dataMessage);
-
-                log_debug("data message of type <" << dataMessage.typeName() << "> to topic <" << dataMessage.topic() << "> received");
-                log_finer(cxxtools::Json(DataMessageView(dataMessage)).beautify(true));
-
+                log_debug("data message to topic <" << dataMessage.topic() << "> received");
                 _pubSubServer.processMessage(*this, dataMessage);
             }
             else
             {
-                log_warn("unknown message type \"" << _deserializer.si().typeName() << '"');
+                log_warn("unknown message type \"" << static_cast<unsigned>(dataMessage.type()) << '"');
             }
 
             if (sentry.deleted())
                 return;
+        });
 
-            _deserializer.begin();
-        }
-
-        if (_stream->attachedDevice()->eof())
+        if (_socket.eof())
             closeClient();
         else
-            sb.beginRead();
+            _socket.beginRead(_inputBuffer.data(), _inputBuffer.size());
     }
     catch (const std::exception& e)
     {
@@ -135,17 +115,35 @@ void Responder::onInput(cxxtools::StreamBuffer& sb)
     }
 }
 
-void Responder::onOutput(cxxtools::StreamBuffer& sb)
+void Responder::onOutput(cxxtools::IODevice&)
 {
-    log_debug("output detected");
+    log_debug("onOutput");
 
     try
     {
-        sb.endWrite();
-        if (sb.out_avail())
-            sb.beginWrite();
+        auto count = _socket.endWrite();
+        _outputBuffer.erase(_outputBuffer.begin(), _outputBuffer.begin() + count);
+        if (_outputBuffer.empty())
+        {
+            if (_outputBufferNext.empty())
+            {
+                outputBufferEmpty(*this);
+            }
+            else
+            {
+                _outputBuffer.swap(_outputBufferNext);
+                _socket.beginWrite(_outputBuffer.data(), _outputBuffer.size());
+            }
+        }
         else
-            outputBufferEmpty(*this);
+        {
+            if (!_outputBufferNext.empty())
+            {
+                _outputBuffer.insert(_outputBuffer.end(), _outputBufferNext.begin(), _outputBufferNext.end());
+                _outputBufferNext.clear();
+            }
+            _socket.beginWrite(_outputBuffer.data(), _outputBuffer.size());
+        }
     }
     catch (const std::exception& e)
     {
@@ -177,8 +175,15 @@ void Responder::sendMessage(const DataMessage& dataMessage)
     log_debug("send message to client");
     try
     {
-        *_stream << cxxtools::bin::Bin(dataMessage);
-        _stream->buffer().beginWrite();
+        if (_socket.writing())
+        {
+            dataMessage.appendTo(_outputBufferNext);
+        }
+        else
+        {
+            dataMessage.appendTo(_outputBuffer);
+            _socket.beginWrite(_outputBuffer.data(), _outputBuffer.size());
+        }
     }
     catch (const std::exception& e)
     {
@@ -192,17 +197,6 @@ void Responder::closeClient()
     log_info("client " << static_cast<void*>(this) << " disconnected");
     _pubSubServer.clientDisconnected(*this);
     delete this;
-}
-
-////////////////////////////////////////////////////////////////////////
-// TcpResponder
-//
-TcpResponder::TcpResponder(Server& pubSubServer)
-    : Responder(pubSubServer),
-      _netstream(pubSubServer._server)
-{
-    init(_netstream);
-    log_info("new client " << static_cast<void*>(this) << " connected");
 }
 
 }

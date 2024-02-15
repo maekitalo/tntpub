@@ -10,9 +10,12 @@ class Subscription
 public:
     class Impl;
 
-    enum class Type
+    enum class Type: char
     {
-        Full, Praefix, Regex
+        Null = ' ',
+        Full = 'F',
+        Praefix = 'P',
+        Regex = 'R'
     };
 
 private:

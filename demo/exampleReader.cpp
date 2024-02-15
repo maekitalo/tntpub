@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
         // initialize logging (read `log.properties` or `log.xml`)
         log_init();
 
-        // accept arguments -i for liste ip and -p for port
+        // accept arguments -i for ip and -p for port
         cxxtools::Arg<std::string> ip(argc, argv, 'i');
         cxxtools::Arg<unsigned short> port(argc, argv, 'p', 9001);
 

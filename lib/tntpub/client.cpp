@@ -4,166 +4,193 @@
  */
 
 #include <tntpub/client.h>
-#include <tntpub/subscribemessage.h>
-#include <tntpub/unsubscribemessage.h>
+#include <tntpub/datamessage.h>
 
-#include <cxxtools/bin/bin.h>
 #include <cxxtools/json.h>
 #include <cxxtools/log.h>
 
 log_define("tntpub.client")
+
+static const unsigned inputBufferSize = 8192;
 
 namespace tntpub
 {
 
 void Client::init()
 {
-    cxxtools::connect(_peer.buffer().outputReady, *this, &Client::onOutput);
-    cxxtools::connect(_peer.buffer().inputReady, *this, &Client::onInput);
+    cxxtools::connect(_peer.outputReady, *this, &Client::onOutput);
+    cxxtools::connect(_peer.inputReady, *this, &Client::onInput);
     cxxtools::connect(_peer.connected, *this, &Client::onConnected);
     cxxtools::connect(_peer.closed, *this, &Client::onClosed);
 }
 
-void Client::begin()
+void Client::beginRead()
 {
-    _deserializer.begin();
-    _peer.buffer().beginRead();
+    if (_inputBuffer.empty())
+        _inputBuffer.resize(inputBufferSize);
+    _peer.beginRead(_inputBuffer.data(), _inputBuffer.size());
 }
 
 Client& Client::subscribe(const std::string& topic, Subscription::Type type)
 {
-    doSubscribe(SubscribeMessage(topic, type));
+    doSendMessage(DataMessage::subscribe(topic, type));
     return *this;
 }
 
-void Client::doSubscribe(const SubscribeMessage& subscribeMessage)
+void Client::doSendMessage(const DataMessage& dataMessage)
 {
-    _peer << cxxtools::bin::Bin(subscribeMessage);
-    _peer.buffer().beginWrite();
+    log_debug("sendMessage of type <" << dataMessage.typeName() << '>');
+    if (_peer.writing())
+    {
+        dataMessage.appendTo(_outputBufferNext);
+    }
+    else
+    {
+        dataMessage.appendTo(_outputBuffer);
+        _peer.beginWrite(_outputBuffer.data(), _outputBuffer.size());
+    }
 }
 
-Client& Client::unsubscribe(const std::string& topic)
+void Client::flush()
 {
-    UnsubscribeMessage unsubscribeMessage(topic);
-    _peer << cxxtools::bin::Bin(unsubscribeMessage);
-    _peer.buffer().beginWrite();
-    return *this;
-}
+    if (_peer.writing())
+    {
+        auto count = _peer.endWrite();
+        _outputBuffer.erase(_outputBuffer.begin(), _outputBuffer.begin() + count);
+    }
 
-void Client::doSendMessage(const DataMessage& msg)
-{
-    log_debug("sendMessage of type <" << msg.typeName() << '>');
-    log_finer(cxxtools::Json(msg).beautify(true));
-    _peer << cxxtools::bin::Bin(msg);
-    _peer.buffer().beginWrite();
+    while (!_outputBuffer.empty())
+    {
+        auto count = _peer.write(_outputBuffer.data(), _outputBuffer.size());
+        _outputBuffer.erase(_outputBuffer.begin(), _outputBuffer.begin() + count);
+    }
+
+    while (!_outputBufferNext.empty())
+    {
+        auto count = _peer.write(_outputBufferNext.data(), _outputBufferNext.size());
+        _outputBufferNext.erase(_outputBufferNext.begin(), _outputBufferNext.begin() + count);
+    }
 }
 
 const DataMessage& Client::readMessage()
 {
-    _dataMessage = DataMessage();
-    while (_peer.peek() != std::ios::traits_type::eof())
+    do
     {
-        if (_deserializer.advance(_peer.buffer()))
+        if (_deserializer.processMessage([this](DataMessage& dataMessage) {
+            _dataMessage = std::move(dataMessage);
+        }))
         {
-            _deserializer.deserialize(_dataMessage);
-            dispatchMessage(_dataMessage);
-            _deserializer.begin();
             return _dataMessage;
         }
+
+        auto count = _peer.endRead();
+        _deserializer.addData(_inputBuffer.data(), count);
+        beginRead();
     }
+    while (!_peer.eof());
 
     throw std::runtime_error("input stream failed in pubsub client");
 }
 
-bool Client::advance()
-{
-    log_debug("advance");
-    if (_deserializer.advance(_peer.buffer()))
-    {
-        _deserializer.deserialize(_dataMessage);
-
-        log_debug("got message of type <" << _dataMessage.typeName() << '>');
-        log_finer(cxxtools::Json(_dataMessage).beautify(true));
-
-        dispatchMessage(_dataMessage);
-        _dataMessage = DataMessage();
-        _deserializer.begin();
-        return true;
-    }
-
-    return false;
-}
-
-void Client::onConnected(cxxtools::net::TcpStream&)
+void Client::onConnected(cxxtools::net::TcpSocket&)
 {
     connected(*this);
 }
 
-void Client::onClosed(cxxtools::net::TcpStream&)
+void Client::onClosed(cxxtools::net::TcpSocket&)
 {
     closed(*this);
 }
 
-void Client::onOutput(cxxtools::StreamBuffer& sb)
+void Client::onOutput(cxxtools::IODevice&)
 {
     log_debug("onOutput");
     try
     {
-        sb.endWrite();
+        auto count = _peer.endWrite();
+        _outputBuffer.erase(_outputBuffer.begin(), _outputBuffer.begin() + count);
+
+        if (_outputBuffer.empty())
+        {
+            if (_outputBufferNext.empty())
+            {
+                messagesSent(*this);
+            }
+            else
+            {
+                _outputBuffer.swap(_outputBufferNext);
+                _peer.beginWrite(_outputBuffer.data(), _outputBuffer.size());
+            }
+        }
+        else
+        {
+            if (!_outputBufferNext.empty())
+            {
+                _outputBuffer.insert(_outputBuffer.end(), _outputBufferNext.begin(), _outputBufferNext.end());
+                _outputBufferNext.clear();
+            }
+            _peer.beginWrite(_outputBuffer.data(), _outputBuffer.size());
+        }
     }
     catch (const std::exception& e)
     {
         log_warn("output failed: " << e.what());
-        sb.device()->cancel();
-        sb.discard();
         _peer.close();
         closed(*this);
         return;
     }
 
-    if (sb.out_avail())
+    if (_outputBuffer.empty())
+    {
+        if (_outputBufferNext.empty())
+        {
+            log_debug("all messages sent");
+            messagesSent(*this);
+        }
+        else
+        {
+            _outputBuffer.swap(_outputBufferNext);
+        }
+
+    }
+
+    if (!_outputBuffer.empty())
     {
         log_debug("continue writing");
-        sb.beginWrite();
-    }
-    else
-    {
-        log_debug("all messages sent");
-        messagesSent(*this);
+        _peer.beginWrite(_outputBuffer.data(), _outputBuffer.size());
     }
 }
 
-void Client::onInput(cxxtools::StreamBuffer& sb)
+void Client::onInput(cxxtools::IODevice&)
 {
     log_debug("onInput");
 
     try
     {
-        sb.endRead();
+        auto count = _peer.endRead();
+        _deserializer.addData(_inputBuffer.data(), count);
+
+        while (_deserializer.processMessage([this](DataMessage& dataMessage) {
+            _dataMessage = std::move(dataMessage);
+        }))
+        {
+            log_debug("got message to topic <" << _dataMessage.topic() << '>');
+            log_finer(cxxtools::Json(_dataMessage.si()).beautify(true));
+            dispatchMessage(_dataMessage);
+        }
     }
     catch (const std::exception& e)
     {
         log_warn("read failed: " << e.what());
-        sb.device()->cancel();
-        sb.discard();
         _peer.close();
         closed(*this);
         return;
     }
 
-    while (true)
-    {
-        auto n = sb.in_avail();
-        log_debug("in_avail=" << n);
-        if (n <= 0)
-            break;
-        advance();
-    }
-
-    if (sb.device()->eof())
+    if (_peer.eof())
         closed(*this);
     else
-        sb.beginRead();
+        beginRead();
 }
 
 }

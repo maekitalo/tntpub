@@ -6,10 +6,13 @@
 #ifndef TNTPUB_DATAMESSAGE_H
 #define TNTPUB_DATAMESSAGE_H
 
-#include <cxxtools/serializationinfo.h>
+#include <tntpub/subscription.h>
 #include <cxxtools/clock.h>
 #include <cxxtools/datetime.h>
+#include <cxxtools/serializationinfo.h>
+#include <cxxtools/signal.h>
 #include <string>
+#include <functional>
 
 namespace tntpub
 {
@@ -20,80 +23,134 @@ namespace tntpub
  */
 class DataMessage
 {
+    friend class DataMessageDeserializer;
     friend void operator<<= (cxxtools::SerializationInfo& si, const DataMessage& dm);
-    friend void operator>>= (const cxxtools::SerializationInfo& si, DataMessage& dm);
-
-    std::string _topic;
-    cxxtools::UtcDateTime _createTime;
-    std::string _rawdata;
-    mutable cxxtools::SerializationInfo _data;
-
-protected:
-    explicit DataMessage(const std::string& topic)
-        : _topic(topic)
-        { }
 
 public:
-    /// A data message is default constructable
-    DataMessage() {}
+    enum class Type : char {
+        Null = ' ',
+        SubscribeFull = 'F',
+        SubscribePraefix = 'P',
+        SubscribeRegex = 'R',
+        UnsubscribeFull = 'f',
+        UnsubscribePraefix = 'p',
+        UnsubscribeRegex = 'r',
+        Data = 'D'
+    };
 
-    /// Creates a data message with a object.
-    /// The object is serialized using cxxtools serialization.
-    template <typename Obj>
-    DataMessage(const std::string& topic, const Obj& obj)
-        : _topic(topic),
-          _createTime(cxxtools::Clock::getSystemTime())
+    struct Header
     {
-        _data <<= obj;
+        uint32_t _messageLength;
+        uint64_t _createDateJulian;
+        uint64_t _createTimeUSecs;
+        uint16_t _topicLength;
+        Type _type;
+
+        uint32_t messageLength() const      { return _messageLength; }
+        uint32_t topicOffset() const        { return sizeof(Header); }
+        uint16_t topicLength() const        { return _topicLength; }
+        uint32_t dataOffset() const         { return topicOffset() + _topicLength; }
+        uint32_t dataLength() const         { return _messageLength - dataOffset(); }
+        cxxtools::UtcDateTime createDateTime() const
+        {
+            cxxtools::Date createDate;
+            cxxtools::Time createTime;
+            createDate.setJulian(_createDateJulian);
+            createTime.setTotalUSecs(_createTimeUSecs);
+            return cxxtools::UtcDateTime(createDate, createTime);
+        }
+    };
+
+private:
+    Type _type = Type::Null;
+    std::string _topic;
+    cxxtools::UtcDateTime _createDateTime;
+    std::string _data;
+
+    DataMessage(const std::string& topic, Type type, const cxxtools::UtcDateTime& createDateTime, const std::string& data)
+        : _type(type),
+          _topic(topic),
+          _createDateTime(createDateTime),
+          _data(data)
+        { }
+
+    DataMessage(const std::string& topic, Type type, const std::string& data)
+        : _type(type),
+          _topic(topic),
+          _createDateTime(cxxtools::Clock::getSystemTime()),
+          _data(data)
+        { }
+
+    DataMessage(const std::string& topic, Type type, const cxxtools::SerializationInfo& data);
+
+public:
+    DataMessage() = default;
+
+    static DataMessage subscribe(const std::string& topic, Subscription::Type type = Subscription::Type::Full, const std::string& data = std::string());
+
+    static DataMessage unsubscribe(const std::string& topic, Subscription::Type type = Subscription::Type::Null);
+
+    static DataMessage createRaw(const std::string& topic, const std::string& data)
+    { return DataMessage(topic, Type::Data, data); }
+
+    template <typename T>
+    static DataMessage create(const std::string& topic, const T& obj)
+    {
+        cxxtools::SerializationInfo si;
+        si <<= obj;
+        return DataMessage(topic, Type::Data, si);
     }
 
     /// Returns the topic where the message is sent through.
     const std::string& topic() const
-    { return _topic; }
+        { return _topic; }
+
+    /// Returns the type
+    Type type() const 
+        { return _type; }
+    bool isDataMessage() const
+        { return _type == Type::Data; }
+    bool isSubscribeMessage() const
+        { return _type == Type::SubscribeFull || _type == Type::SubscribePraefix || _type == Type::SubscribeRegex; }
+    bool isUnsubscribeMessage() const
+        { return _type == Type::UnsubscribeFull || _type == Type::UnsubscribePraefix || _type == Type::UnsubscribeRegex; }
 
     /// Returns the time, when the data message is created and hence initially received.
-    const cxxtools::UtcDateTime& createTime() const
-    { return _createTime; }
+    const cxxtools::UtcDateTime& createDateTime() const
+        { return _createDateTime; }
 
     /// Returns the data of the message.
-    const cxxtools::SerializationInfo& data() const;
+    const std::string& data() const
+        { return _data; }
+
+    cxxtools::SerializationInfo si() const;
+
+    const std::string& typeName() const
+        { return si().typeName(); }
 
     /// Deserializes the object carried by this data message.
     template <typename Obj> void get(Obj& obj) const
-    { data() >>= obj; }
+    { si() >>= obj; }
 
-    /// Returns the type name of the data object.
-    const std::string& typeName() const
-    { return data().typeName(); }
+    void appendTo(std::vector<char>& buffer) const;
 };
 
-/** This class helps visualising a data message.
- *
- *  The data message serializes the data as a binary string. This makes
- *  it difficult to see, what is inside e.g. for logging. This class helps
- *  by deserializing the data when serializing and serializing the deserialized
- *  raw data.
- *
- *  Example:
- *  @code
- *      tntpub::DataMessage dm("someTopic", aObject);
- *      log_debug(cxxtools::Json(tntpub::DataMessageView(dm)).beautify(true));
- *  @endcode
- *
- *  In the example above a datamessage is wrapped by the view and the passed
- *  to the json serializer helper, which outputs the message as json.
-*/
-
-class DataMessageView
+class DataMessageDeserializer
 {
-    friend void operator<<= (cxxtools::SerializationInfo& si, const DataMessageView& dv);
-    const DataMessage& _dm;
+    std::string _inputData;
 
 public:
-    DataMessageView(const DataMessage& dm)
-        : _dm(dm)
-        { }
+    void addData(const char* buffer, unsigned bufsize)
+        { _inputData.append(buffer, bufsize); }
+    bool processMessage(std::function<void(DataMessage&)> messageReceived);
+    unsigned advance(const char* buffer, unsigned bufsize, std::function<void(DataMessage&)> messageReceived);
+    unsigned in_avail() const   { return _inputData.size(); }
+
+    cxxtools::Signal<DataMessage&> message;
 };
+
+void operator<<= (cxxtools::SerializationInfo& si, const DataMessage& dm);
+void operator<<= (cxxtools::SerializationInfo& si, const DataMessage::Header& header);
 
 }
 

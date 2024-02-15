@@ -1,6 +1,5 @@
 #include <tntpub/server.h>
 #include <tntpub/responder.h>
-#include <tntpub/subscribemessage.h>
 #include <tntpub/datamessage.h>
 
 #include <cxxtools/eventloop.h>
@@ -61,7 +60,7 @@ public:
 // A responder is responsible for a single client. Here it stores the position
 // from where to send the next message per topic.
 
-class RecoverResponder : public tntpub::TcpResponder
+class RecoverResponder : public tntpub::Responder
 {
     RecoverServer& _server;
 
@@ -80,7 +79,7 @@ class RecoverResponder : public tntpub::TcpResponder
     void onOutputBufferEmpty(tntpub::Responder&);
 
 protected:
-    void subscribeMessageReceived(const tntpub::SubscribeMessage& subscribeMessage) override;
+    void subscribeMessageReceived(const tntpub::DataMessage& subscribeMessage) override;
 
 public:
     explicit RecoverResponder(RecoverServer& server);
@@ -105,7 +104,7 @@ void RecoverServer::doSendMessage(const tntpub::DataMessage& msg)
 // Impl Responder
 
 RecoverResponder::RecoverResponder(RecoverServer& server)
-    : tntpub::TcpResponder(server),
+    : tntpub::Responder(server),
       _server(server)
 {
     // when the output buffer gets empty, we are notified and we can
@@ -113,7 +112,7 @@ RecoverResponder::RecoverResponder(RecoverServer& server)
     cxxtools::connect(outputBufferEmpty, *this, &RecoverResponder::onOutputBufferEmpty);
 }
 
-void RecoverResponder::subscribeMessageReceived(const tntpub::SubscribeMessage& subscribeMessage)
+void RecoverResponder::subscribeMessageReceived(const tntpub::DataMessage& subscribeMessage)
 {
     log_info("subscribe message received for topic " << subscribeMessage.topic());
 

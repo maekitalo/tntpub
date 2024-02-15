@@ -18,6 +18,9 @@ public:
     const std::string& data() const    { return  _data; }
 };
 
+namespace
+{
+
 class FullTopic : public Subscription::Impl
 {
 public:
@@ -60,6 +63,8 @@ public:
 bool RegexTopic::match(const std::string& topic) const
 {
     return _regex.match(topic);
+}
+
 }
 
 Subscription::Subscription(const std::string& topic, Type type)

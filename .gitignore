@@ -48,3 +48,5 @@ demo/exampleSender
 demo/readerBenchmarker
 demo/readerBenchmarkerAsync
 demo/recoverQueue
+demo/recoverServer
+test/alltests

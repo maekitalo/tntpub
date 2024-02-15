@@ -16,8 +16,6 @@ namespace tntpub
 {
 
 class Responder;
-class TcpResponder;
-class SubscribeMessage;
 
 ////////////////////////////////////////////////////////////////////////
 // Server
@@ -25,7 +23,6 @@ class SubscribeMessage;
 class Server : public MessageSinkSource, public cxxtools::Connectable
 {
     friend class Responder;
-    friend class TcpResponder;
 
     cxxtools::net::TcpServer _server;
 
@@ -51,7 +48,7 @@ public:
 
     cxxtools::Signal<Responder&> clientConnected;
     cxxtools::Signal<Responder&> clientDisconnected;
-    cxxtools::Signal<Responder&, const SubscribeMessage&> clientSubscribed;
+    cxxtools::Signal<Responder&, const DataMessage&> clientSubscribed;
 };
 
 }

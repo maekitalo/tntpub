@@ -30,7 +30,7 @@ public:
         typename cxxtools::TypeTraits<A>::Value arg;
         try
         {
-            dm.get(arg);
+            dm.si() >>= arg;
         }
         catch (const cxxtools::SerializationError&)
         {
@@ -59,7 +59,7 @@ public:
         typename cxxtools::TypeTraits<A>::Value arg;
         try
         {
-            dm.get(arg);
+            dm.si() >>= arg;
         }
         catch (const cxxtools::SerializationError&)
         {

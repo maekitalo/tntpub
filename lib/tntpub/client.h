@@ -7,30 +7,35 @@
 #define TNTPUB_CLIENT_H
 
 #include <tntpub/datamessage.h>
-#include <tntpub/subscribemessage.h>
+#include <tntpub/datamessage.h>
 #include <tntpub/subscription.h>
 #include <tntpub/messagesinksource.h>
 #include <cxxtools/bin/deserializer.h>
 #include <cxxtools/signal.h>
 #include <cxxtools/net/tcpstream.h>
+#include <vector>
 
 namespace tntpub
 {
 class Client : public MessageSinkSource, public cxxtools::Connectable
 {
-    cxxtools::net::TcpStream _peer;
-    cxxtools::bin::Deserializer _deserializer;
+    cxxtools::net::TcpSocket _peer;
+
+    std::vector<char> _inputBuffer;
+    std::vector<char> _outputBuffer;
+    std::vector<char> _outputBufferNext;
+
+    DataMessageDeserializer _deserializer;
     DataMessage _dataMessage;
 
-    void onConnected(cxxtools::net::TcpStream&);
-    void onClosed(cxxtools::net::TcpStream&);
-    void onOutput(cxxtools::StreamBuffer& sb);
-    void onInput(cxxtools::StreamBuffer& sb);
+    void onConnected(cxxtools::net::TcpSocket&);
+    void onClosed(cxxtools::net::TcpSocket&);
+    void onOutput(cxxtools::IODevice&);
+    void onInput(cxxtools::IODevice&);
     void doSendMessage(const DataMessage& msg);
 
     void init();
-    void begin();
-    void doSubscribe(const SubscribeMessage& subscribeMessage);
+    void beginRead();
 
     Client(Client&) = delete;
     Client& operator=(Client&) = delete;
@@ -38,25 +43,24 @@ class Client : public MessageSinkSource, public cxxtools::Connectable
 public:
     explicit Client(cxxtools::SelectorBase* selector = 0)
     {
-        if (selector)
-            setSelector(selector);
+        setSelector(selector);
         init();
     }
 
     Client(const std::string& ipaddr, unsigned short int port)
         : _peer(ipaddr, port)
-        { init(); begin(); }
+        { init(); beginRead(); }
 
     explicit Client(const cxxtools::net::AddrInfo& addrinfo)
         : _peer(addrinfo)
-        { init(); begin(); }
+        { init(); beginRead(); }
 
     explicit Client(cxxtools::SelectorBase* selector, const std::string& ipaddr, unsigned short int port)
         : _peer(ipaddr, port)
     {
         setSelector(selector);
         init();
-        begin();
+        beginRead();
     }
 
     explicit Client(cxxtools::SelectorBase* selector, const cxxtools::net::AddrInfo& addrinfo)
@@ -64,32 +68,32 @@ public:
     {
         setSelector(selector);
         init();
-        begin();
+        beginRead();
     }
 
     void setSelector(cxxtools::SelectorBase* selector)
-        { _peer.attachedDevice()->setSelector(selector); }
+        { _peer.setSelector(selector); }
 
     bool beginConnect(const cxxtools::net::AddrInfo& addrinfo)
-    { return _peer.beginConnect(addrinfo); }
+        { return _peer.beginConnect(addrinfo); }
 
     bool beginConnect(const std::string& ipaddr, unsigned short int port)
-    { return _peer.beginConnect(ipaddr, port); }
+        { return _peer.beginConnect(ipaddr, port); }
 
     void endConnect()
-    { _peer.endConnect(); begin(); }
+        { _peer.endConnect(); beginRead(); }
 
     void connect(const cxxtools::net::AddrInfo& addrinfo)
-    { _peer.connect(addrinfo); begin(); }
+        { _peer.connect(addrinfo); beginRead(); }
 
     void connect(const std::string& ipaddr, unsigned short int port)
-    { _peer.connect(ipaddr, port); begin(); }
+        { _peer.connect(ipaddr, port); beginRead(); }
 
     void close()
-    { _peer.close(); }
+        { _peer.close(); }
 
     bool isConnected() const
-    { return _peer.isConnected(); }
+        { return _peer.isConnected(); }
 
     // subscribe to topic
     Client& subscribe(const std::string& topic, Subscription::Type type = Subscription::Type::Full);
@@ -97,23 +101,19 @@ public:
     // subscribe to topic with additional information
     template <typename Obj>
     Client& subscribe(const std::string& topic, const Obj& obj, Subscription::Type type = Subscription::Type::Full)
-    { doSubscribe(SubscribeMessage(topic, obj, type)); return *this; }
+        { doSendMessage(DataMessage::subscribe(topic, obj, type)); return *this; }
 
-    Client& unsubscribe(const std::string& topic);
+    Client& unsubscribe(const std::string& topic)
+        { doSendMessage(DataMessage::unsubscribe(topic)); return *this; }
 
-    void flush()
-    { _peer.flush(); }
-
-    // Processes available input characters and returns true, if the data message is complete.
-    // After it returns true, the message can be read using `getMessage`.
-    bool advance();
+    void flush();
 
     // returns the last received data message
     const DataMessage& getMessage()
     { return _dataMessage; }
 
     template <typename Obj> void getMessage(Obj& obj)
-    { return _dataMessage.get(obj); }
+    { return _dataMessage.si() >>= obj; }
 
     // reads next message from stream (blocking)
     const DataMessage& readMessage();
@@ -121,7 +121,7 @@ public:
     // reads next message
     template <typename Obj> void readMessage(Obj& obj)
     {
-        readMessage().get(obj);
+        readMessage().si() >>= obj;
     }
 
     cxxtools::Signal<Client&> connected;

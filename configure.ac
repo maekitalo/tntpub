@@ -1,10 +1,10 @@
-AC_INIT(tntpub, 1.0, [Tommi Maekitalo <tommi@tntnet.org>])
+AC_INIT(tntpub, 4.0, [Tommi Maekitalo <tommi@tntnet.org>])
 AM_INIT_AUTOMAKE
 LT_INIT
 
 AC_CONFIG_MACRO_DIR([m4])
 
-abi_current=0
+abi_current=1
 abi_revision=0
 abi_age=0
 sonumber=${abi_current}:${abi_revision}:${abi_age}
@@ -19,10 +19,13 @@ AC_CHECK_HEADER([cxxtools/serializationinfo.h], , AC_MSG_ERROR([cxxtools headers
 AX_CHECK_COMPILE_FLAG([-Wall], [CPPFLAGS="$CPPFLAGS -Wall"])
 AX_CHECK_COMPILE_FLAG([-pedantic], [CPPFLAGS="$CPPFLAGS -pedantic"])
 
-AC_OUTPUT([
+AC_CONFIG_FILES([
     Makefile
     lib/Makefile
     server/Makefile
     demo/Makefile
+    test/Makefile
     pkgconfig/tntpub.pc
 ])
+
+AC_OUTPUT()

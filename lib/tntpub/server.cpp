@@ -45,7 +45,7 @@ void Server::onConnectionPending(cxxtools::net::TcpServer&)
 
 Responder* Server::createResponder()
 {
-    return new TcpResponder(*this);
+    return new Responder(*this);
 }
 
 void Server::processMessage(Responder&, DataMessage& dataMessage)
