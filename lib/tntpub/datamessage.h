@@ -25,6 +25,7 @@ class DataMessage
 {
     friend class DataMessageDeserializer;
     friend void operator<<= (cxxtools::SerializationInfo& si, const DataMessage& dm);
+    friend void operator>>= (const cxxtools::SerializationInfo& si, DataMessage& dm);
 
 public:
     enum class Type : char {
@@ -66,6 +67,9 @@ private:
     std::string _topic;
     cxxtools::UtcDateTime _createDateTime;
     std::string _data;
+    mutable cxxtools::SerializationInfo _si;
+
+    void setData(const cxxtools::SerializationInfo& si);
 
     DataMessage(const std::string& topic, Type type, const cxxtools::UtcDateTime& createDateTime, const std::string& data)
         : _type(type),
@@ -85,6 +89,22 @@ private:
 
 public:
     DataMessage() = default;
+    /// Creates a data message with a object.
+    /// The object is serialized using cxxtools serialization.
+    /// @deprecated  - use DataMessage::create instead
+    template <typename Obj>
+#if __cplusplus >= 201402L
+    [[deprecated("use DataMessage::create instead")]]
+#endif
+    DataMessage(const std::string& topic, const Obj& obj)
+        : _type(Type::Data),
+          _topic(topic),
+          _createDateTime(cxxtools::Clock::getSystemTime())
+    {
+        cxxtools::SerializationInfo si;
+        si <<= obj;
+        setData(si);
+    }
 
     static DataMessage subscribe(const std::string& topic, Subscription::Type type = Subscription::Type::Full, const std::string& data = std::string());
 
@@ -123,7 +143,7 @@ public:
     const std::string& data() const
         { return _data; }
 
-    cxxtools::SerializationInfo si() const;
+    const cxxtools::SerializationInfo& si() const;
 
     const std::string& typeName() const
         { return si().typeName(); }

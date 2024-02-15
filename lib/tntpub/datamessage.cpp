@@ -42,18 +42,27 @@ DataMessage::DataMessage(const std::string& topic, Type type, const cxxtools::Se
       _topic(topic),
       _createDateTime(cxxtools::Clock::getSystemTime())
 {
+    setData(data);
+}
+
+void DataMessage::setData(const cxxtools::SerializationInfo& si)
+{
     std::ostringstream ss;
     cxxtools::bin::Serializer serializer(ss);
-    serializer.serialize(data);
+    serializer.serialize(si);
     _data = ss.str();
     
 }
 
-cxxtools::SerializationInfo DataMessage::si() const
+const cxxtools::SerializationInfo& DataMessage::si() const
 {
-    std::istringstream ss(_data);
-    cxxtools::bin::Deserializer deserializer(ss);
-    return deserializer.si();
+    if (_si.isNull())
+    {
+        std::istringstream ss(_data);
+        cxxtools::bin::Deserializer deserializer(ss);
+        _si = std::move(deserializer.si());
+    }
+    return _si;
 }
 
 void DataMessage::appendTo(std::vector<char>& buffer) const
@@ -124,6 +133,14 @@ void operator<<= (cxxtools::SerializationInfo& si, const DataMessage& dm)
     si.addMember("topic") <<= dm._topic;
     si.addMember("createDateTime") <<= dm._createDateTime;
     si.addMember("data") <<= dm._data;
+}
+
+void operator>>= (const cxxtools::SerializationInfo& si, DataMessage& dm)
+{
+    si.getMember("type") >>= cxxtools::EnumClass(dm._type);
+    si.getMember("topic") >>= dm._topic;
+    si.getMember("createDateTime") >>= dm._createDateTime;
+    si.getMember("data") >>= dm._data;
 }
 
 void operator<<= (cxxtools::SerializationInfo& si, const DataMessage::Header& header)
