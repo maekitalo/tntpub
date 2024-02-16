@@ -11,7 +11,7 @@
 
 log_define("tntpub.client")
 
-static const unsigned inputBufferSize = 8192;
+static const unsigned bufferSize = 8192;
 
 namespace tntpub
 {
@@ -27,7 +27,7 @@ void Client::init()
 void Client::beginRead()
 {
     if (_inputBuffer.empty())
-        _inputBuffer.resize(inputBufferSize);
+        _inputBuffer.resize(bufferSize);
     _peer.beginRead(_inputBuffer.data(), _inputBuffer.size());
 }
 
@@ -42,10 +42,30 @@ void Client::doSendMessage(const DataMessage& dataMessage)
     log_debug("sendMessage of type <" << dataMessage.typeName() << '>');
     if (_peer.writing())
     {
+        log_finer("append to next buffer");
         dataMessage.appendTo(_outputBufferNext);
+
+        log_finer("output buffer " << _outputBufferNext.size() << " buffer size " << bufferSize << " wavail=" << _peer.wavail());
+        if (_outputBufferNext.size() > bufferSize && _peer.wavail())
+        {
+            log_finer("auto sync");
+            auto count = _peer.endWrite();
+            _outputBuffer.erase(_outputBuffer.begin(), _outputBuffer.begin() + count);
+            if (_outputBuffer.empty())
+            {
+                _outputBuffer.swap(_outputBufferNext);
+            }
+            else
+            {
+                _outputBuffer.insert(_outputBuffer.end(), _outputBufferNext.begin(), _outputBufferNext.end());
+                _outputBufferNext.clear();
+            }
+            _peer.beginWrite(_outputBuffer.data(), _outputBuffer.size());
+        }
     }
     else
     {
+        log_finer("append to buffer and begin writing");
         dataMessage.appendTo(_outputBuffer);
         _peer.beginWrite(_outputBuffer.data(), _outputBuffer.size());
     }
@@ -53,22 +73,27 @@ void Client::doSendMessage(const DataMessage& dataMessage)
 
 void Client::flush()
 {
+    log_debug("flush; writing " << _peer.writing() << " output buffer size " << _outputBuffer.size() << " next size " << _outputBufferNext.size());
+
     if (_peer.writing())
     {
         auto count = _peer.endWrite();
         _outputBuffer.erase(_outputBuffer.begin(), _outputBuffer.begin() + count);
+        log_finer(count << " written from pending output " << _outputBuffer.size() << " kept");
     }
 
     while (!_outputBuffer.empty())
     {
         auto count = _peer.write(_outputBuffer.data(), _outputBuffer.size());
         _outputBuffer.erase(_outputBuffer.begin(), _outputBuffer.begin() + count);
+        log_finer(count << " written from output buffer " << _outputBuffer.size() << " kept");
     }
 
     while (!_outputBufferNext.empty())
     {
         auto count = _peer.write(_outputBufferNext.data(), _outputBufferNext.size());
         _outputBufferNext.erase(_outputBufferNext.begin(), _outputBufferNext.begin() + count);
+        log_finer(count << " written from next output buffer " << _outputBufferNext.size() << " kept");
     }
 }
 

@@ -7,7 +7,6 @@
 #define TNTPUB_CLIENT_H
 
 #include <tntpub/datamessage.h>
-#include <tntpub/datamessage.h>
 #include <tntpub/subscription.h>
 #include <tntpub/messagesinksource.h>
 #include <cxxtools/bin/deserializer.h>
@@ -32,7 +31,7 @@ class Client : public MessageSinkSource, public cxxtools::Connectable
     void onClosed(cxxtools::net::TcpSocket&);
     void onOutput(cxxtools::IODevice&);
     void onInput(cxxtools::IODevice&);
-    void doSendMessage(const DataMessage& msg);
+    void doSendMessage(const DataMessage& msg) override;
 
     void init();
     void beginRead();

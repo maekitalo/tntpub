@@ -32,6 +32,7 @@ class Server : public MessageSinkSource, public cxxtools::Connectable
 
 protected:
     virtual Responder* createResponder();
+    void doSendMessage(const DataMessage& msg) override;
 
 public:
     Server(cxxtools::SelectorBase& selector);
@@ -43,8 +44,6 @@ public:
         { return _server.selector(); }
 
     void listen(const std::string& ip, unsigned short port);
-
-    void doSendMessage(const DataMessage& msg);
 
     cxxtools::Signal<Responder&> clientConnected;
     cxxtools::Signal<Responder&> clientDisconnected;
