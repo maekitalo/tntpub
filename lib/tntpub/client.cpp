@@ -39,7 +39,7 @@ Client& Client::subscribe(const std::string& topic, Subscription::Type type)
 
 void Client::doSendMessage(const DataMessage& dataMessage)
 {
-    log_debug("sendMessage of type <" << dataMessage.typeName() << '>');
+    log_debug("sendMessage of type <" << static_cast<std::underlying_type<DataMessage::Type>::type>(dataMessage.type()) << '>');
     if (_peer.writing())
     {
         log_finer("append to next buffer");
@@ -162,27 +162,6 @@ void Client::onOutput(cxxtools::IODevice&)
         log_warn("output failed: " << e.what());
         _peer.close();
         closed(*this);
-        return;
-    }
-
-    if (_outputBuffer.empty())
-    {
-        if (_outputBufferNext.empty())
-        {
-            log_debug("all messages sent");
-            messagesSent(*this);
-        }
-        else
-        {
-            _outputBuffer.swap(_outputBufferNext);
-        }
-
-    }
-
-    if (!_outputBuffer.empty())
-    {
-        log_debug("continue writing");
-        _peer.beginWrite(_outputBuffer.data(), _outputBuffer.size());
     }
 }
 
