@@ -32,11 +32,12 @@ public:
         Null = ' ',
         SubscribeFull = 'F',
         SubscribePraefix = 'P',
-        SubscribeRegex = 'R',
+        SubscribeRegex = 'X',
         UnsubscribeFull = 'f',
         UnsubscribePraefix = 'p',
-        UnsubscribeRegex = 'r',
-        Data = 'D'
+        UnsubscribeRegex = 'x',
+        Data = 'D',
+        RawData = 'R'
     };
 
     struct Header
@@ -89,6 +90,28 @@ private:
 
 public:
     DataMessage() = default;
+
+    DataMessage(const DataMessage& dm)
+        : _type(dm._type),
+          _topic(dm._topic),
+          _createDateTime(dm._createDateTime),
+          _data(dm._data),
+          _si()
+          { }
+
+    DataMessage& operator=(const DataMessage& dm)
+    {
+        _type = dm._type;
+        _topic = _topic;
+        _createDateTime = dm._createDateTime;
+        _data = dm._data;
+        _si.clear();
+        return *this;
+    }
+
+    DataMessage(DataMessage&&) = default;
+    DataMessage& operator= (DataMessage&&) = default;
+
     /// Creates a data message with a object.
     /// The object is serialized using cxxtools serialization.
     /// @deprecated  - use DataMessage::create instead
@@ -111,7 +134,7 @@ public:
     static DataMessage unsubscribe(const std::string& topic, Subscription::Type type = Subscription::Type::Null);
 
     static DataMessage createRaw(const std::string& topic, const std::string& data)
-    { return DataMessage(topic, Type::Data, data); }
+    { return DataMessage(topic, Type::RawData, data); }
 
     template <typename T>
     static DataMessage create(const std::string& topic, const T& obj)

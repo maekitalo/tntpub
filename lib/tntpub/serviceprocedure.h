@@ -27,6 +27,9 @@ public:
 
     virtual void invoke(const DataMessage& dm)
     {
+        if (dm.type() != DataMessage::Type::Data)
+            return;
+
         typename cxxtools::TypeTraits<A>::Value arg;
         try
         {

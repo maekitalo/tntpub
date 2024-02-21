@@ -179,7 +179,7 @@ void Client::onInput(cxxtools::IODevice&)
         }))
         {
             log_debug("got message to topic <" << _dataMessage.topic() << '>');
-            log_finer(cxxtools::Json(_dataMessage.si()).beautify(true));
+            log_finer_if(_dataMessage.type() == DataMessage::Type::Data, cxxtools::Json(_dataMessage.si()).beautify(true));
             dispatchMessage(_dataMessage);
         }
     }
