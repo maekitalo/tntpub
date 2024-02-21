@@ -46,7 +46,7 @@ void Client::doSendMessage(const DataMessage& dataMessage)
         dataMessage.appendTo(_outputBufferNext);
 
         log_finer("output buffer " << _outputBufferNext.size() << " buffer size " << bufferSize << " wavail=" << _peer.wavail());
-        if (_outputBufferNext.size() > bufferSize && _peer.wavail())
+        if (_peer.selector() == nullptr && _outputBufferNext.size() > bufferSize && _peer.wavail())
         {
             log_finer("auto sync");
             auto count = _peer.endWrite();
