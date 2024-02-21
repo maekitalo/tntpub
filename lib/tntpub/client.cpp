@@ -40,34 +40,46 @@ Client& Client::subscribe(const std::string& topic, Subscription::Type type)
 void Client::doSendMessage(const DataMessage& dataMessage)
 {
     log_debug("sendMessage of type <" << static_cast<std::underlying_type<DataMessage::Type>::type>(dataMessage.type()) << '>');
-    if (_peer.writing())
+    if (_peer.selector())
     {
-        log_finer("append to next buffer");
-        dataMessage.appendTo(_outputBufferNext);
-
-        log_finer("output buffer " << _outputBufferNext.size() << " buffer size " << bufferSize << " wavail=" << _peer.wavail());
-        if (_peer.selector() == nullptr && _outputBufferNext.size() > bufferSize && _peer.wavail())
+        if (_peer.writing())
         {
-            log_finer("auto sync");
-            auto count = _peer.endWrite();
-            _outputBuffer.erase(_outputBuffer.begin(), _outputBuffer.begin() + count);
-            if (_outputBuffer.empty())
+            log_finer("append to next buffer");
+            dataMessage.appendTo(_outputBufferNext);
+
+            log_finer("output buffer " << _outputBufferNext.size() << " buffer size " << bufferSize << " wavail=" << _peer.wavail());
+            if (_peer.selector() == nullptr && _outputBufferNext.size() > bufferSize && _peer.wavail())
             {
-                _outputBuffer.swap(_outputBufferNext);
+                log_finer("auto sync");
+                auto count = _peer.endWrite();
+                _outputBuffer.erase(_outputBuffer.begin(), _outputBuffer.begin() + count);
+                if (_outputBuffer.empty())
+                {
+                    _outputBuffer.swap(_outputBufferNext);
+                }
+                else
+                {
+                    _outputBuffer.insert(_outputBuffer.end(), _outputBufferNext.begin(), _outputBufferNext.end());
+                    _outputBufferNext.clear();
+                }
+                _peer.beginWrite(_outputBuffer.data(), _outputBuffer.size());
             }
-            else
-            {
-                _outputBuffer.insert(_outputBuffer.end(), _outputBufferNext.begin(), _outputBufferNext.end());
-                _outputBufferNext.clear();
-            }
+        }
+        else
+        {
+            log_finer("append to buffer and begin writing");
+            dataMessage.appendTo(_outputBuffer);
             _peer.beginWrite(_outputBuffer.data(), _outputBuffer.size());
         }
     }
     else
     {
-        log_finer("append to buffer and begin writing");
         dataMessage.appendTo(_outputBuffer);
-        _peer.beginWrite(_outputBuffer.data(), _outputBuffer.size());
+        while (!_outputBuffer.empty())
+        {
+            auto count = _peer.write(_outputBuffer.data(), _outputBuffer.size());
+            _outputBuffer.erase(_outputBuffer.begin(), _outputBuffer.begin() + count);
+        }
     }
 }
 
