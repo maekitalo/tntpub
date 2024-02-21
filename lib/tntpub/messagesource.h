@@ -25,6 +25,13 @@ public:
         doSendMessage(msg);
         return *this;
     }
+
+    MessageSource& sendPlainMessage(const std::string& topic, const std::string& data)
+    {
+        auto msg = DataMessage::createPlain(topic, data);
+        doSendMessage(msg);
+        return *this;
+    }
 };
 
 }

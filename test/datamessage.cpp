@@ -9,14 +9,14 @@ public:
         : cxxtools::unit::TestSuite("datamessage")
     {
         registerMethod("create", *this, &DataMessageTest::create);
-        registerMethod("createRaw", *this, &DataMessageTest::createRaw);
+        registerMethod("createPlain", *this, &DataMessageTest::createPlain);
         registerMethod("subscribeMessage", *this, &DataMessageTest::subscribeMessage);
         registerMethod("unsubscribeMessage", *this, &DataMessageTest::unsubscribeMessage);
         registerMethod("serialize", *this, &DataMessageTest::serialize);
     }
 
     void create();
-    void createRaw();
+    void createPlain();
     void subscribeMessage();
     void unsubscribeMessage();
     void serialize();
@@ -35,10 +35,10 @@ void DataMessageTest::create()
     CXXTOOLS_UNIT_ASSERT(v == result);
 }
 
-void DataMessageTest::createRaw()
+void DataMessageTest::createPlain()
 {
     std::string data("ABC123");
-    auto dm = tntpub::DataMessage::createRaw("foo", data);
+    auto dm = tntpub::DataMessage::createPlain("foo", data);
     CXXTOOLS_UNIT_ASSERT_EQUALS(dm.data(), data);
 }
 

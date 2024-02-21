@@ -37,7 +37,7 @@ public:
         UnsubscribePraefix = 'p',
         UnsubscribeRegex = 'x',
         Data = 'D',
-        RawData = 'R'
+        PlainData = 'R'
     };
 
     struct Header
@@ -133,8 +133,8 @@ public:
 
     static DataMessage unsubscribe(const std::string& topic, Subscription::Type type = Subscription::Type::Null);
 
-    static DataMessage createRaw(const std::string& topic, const std::string& data)
-    { return DataMessage(topic, Type::RawData, data); }
+    static DataMessage createPlain(const std::string& topic, const std::string& data)
+    { return DataMessage(topic, Type::PlainData, data); }
 
     template <typename T>
     static DataMessage create(const std::string& topic, const T& obj)
@@ -152,7 +152,7 @@ public:
     Type type() const 
         { return _type; }
     bool isDataMessage() const
-        { return _type == Type::Data; }
+        { return _type == Type::Data || _type == Type::PlainData; }
     bool isSubscribeMessage() const
         { return _type == Type::SubscribeFull || _type == Type::SubscribePraefix || _type == Type::SubscribeRegex; }
     bool isUnsubscribeMessage() const
