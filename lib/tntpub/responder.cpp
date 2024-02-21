@@ -28,6 +28,8 @@ Responder::Responder(Server& pubSubServer)
       _socket(pubSubServer._server),
       _sentry(0)
 {
+    log_info("new client " << static_cast<void*>(this) << " connected");
+
     _socket.setSelector(_pubSubServer.selector());
     cxxtools::connect(_socket.inputReady, *this, &Responder::onInput);
     cxxtools::connect(_socket.outputReady, *this, &Responder::onOutput);
