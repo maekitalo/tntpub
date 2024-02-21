@@ -29,7 +29,7 @@ void onClientSubscribed(tntpub::Responder& client, const tntpub::DataMessage& ms
 void onDataMessageReceived(const tntpub::DataMessage& dm)
 {
     if (dm.topic() == persistantTopic)
-        messages.push_back(dm);
+        messages.emplace_back(dm);
 }
 
 int main(int argc, char* argv[])

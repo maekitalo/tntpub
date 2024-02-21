@@ -71,7 +71,12 @@ void Responder::onInput(cxxtools::IODevice&)
         auto count = _socket.endRead();
         _deserializer.advance(_inputBuffer.data(), count, [this, &sentry] (DataMessage& dataMessage) {
             log_debug("process data message " << cxxtools::Json(dataMessage));
-            if (dataMessage.isSubscribeMessage())
+            if (dataMessage.isDataMessage())
+            {
+                log_debug("data message to topic <" << dataMessage.topic() << "> received");
+                _pubSubServer.processMessage(*this, dataMessage);
+            }
+            else if (dataMessage.isSubscribeMessage())
             {
                 subscribeMessageReceived(dataMessage);
             }
@@ -87,11 +92,6 @@ void Responder::onInput(cxxtools::IODevice&)
                         break;
                     }
                 }
-            }
-            else if (dataMessage.isDataMessage())
-            {
-                log_debug("data message to topic <" << dataMessage.topic() << "> received");
-                _pubSubServer.processMessage(*this, dataMessage);
             }
             else
             {
@@ -127,21 +127,27 @@ void Responder::onOutput(cxxtools::IODevice&)
         {
             if (_outputBufferNext.empty())
             {
+                log_finer("output buffer empty");
                 outputBufferEmpty(*this);
             }
             else
             {
+                log_finer("fetch next output buffer " << _outputBufferNext.size());
                 _outputBuffer.swap(_outputBufferNext);
+                log_finer("begin write " << _outputBuffer.size());
                 _socket.beginWrite(_outputBuffer.data(), _outputBuffer.size());
             }
         }
         else
         {
+            log_finer("partial write " << _outputBuffer.size() << " left");
             if (!_outputBufferNext.empty())
             {
+                log_finer("append next " << _outputBufferNext.size());
                 _outputBuffer.insert(_outputBuffer.end(), _outputBufferNext.begin(), _outputBufferNext.end());
                 _outputBufferNext.clear();
             }
+            log_finer("begin write " << _outputBuffer.size());
             _socket.beginWrite(_outputBuffer.data(), _outputBuffer.size());
         }
     }
@@ -178,10 +184,12 @@ void Responder::sendMessage(const DataMessage& dataMessage)
         if (_socket.writing())
         {
             dataMessage.appendTo(_outputBufferNext);
+            log_finer("next buffer " << _outputBufferNext.size());
         }
         else
         {
             dataMessage.appendTo(_outputBuffer);
+            log_finer("begin write " << _outputBuffer.size());
             _socket.beginWrite(_outputBuffer.data(), _outputBuffer.size());
         }
     }
