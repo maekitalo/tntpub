@@ -44,9 +44,10 @@ int main(int argc, char* argv[])
             unsigned fcount = 0;
             while (std::cin >> cxxtools::Json(msg))
             {
+                auto dm = tntpub::DataMessage::create(topic, msg);
                 for (unsigned n = 0; n < count; ++n)
                 {
-                    client.sendMessage(topic, msg);
+                    client.sendMessage(dm);
                     ++fcount;
                     if (flush > 0 && fcount % flush == 0)
                         client.flush();
