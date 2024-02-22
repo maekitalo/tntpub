@@ -47,18 +47,14 @@ DataMessage::DataMessage(const std::string& topic, Type type, const cxxtools::Se
 
 void DataMessage::setData(const cxxtools::SerializationInfo& si)
 {
-    std::ostringstream ss;
-    cxxtools::bin::Serializer serializer(ss);
-    serializer.serialize(si);
-    _data = ss.str();
-    
+    _data = cxxtools::bin::Serializer::toString(si);
 }
 
 const cxxtools::SerializationInfo& DataMessage::si() const
 {
     if (_si.isNull())
     {
-        std::istringstream ss(_data);
+        std::stringbuf ss(_data);
         cxxtools::bin::Deserializer deserializer(ss);
         _si = std::move(deserializer.si());
     }
