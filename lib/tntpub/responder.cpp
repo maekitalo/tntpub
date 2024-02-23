@@ -7,7 +7,7 @@
 #include <tntpub/server.h>
 #include <tntpub/datamessage.h>
 
-#include <cxxtools/ioerror.h>
+#include <cxxtools/destructionsentry.h>
 #include <cxxtools/bin/bin.h>
 #include <cxxtools/json.h>
 
@@ -15,26 +15,21 @@
 
 log_define("tntpub.responder")
 
-static const unsigned inputBufferSize = 8192;
-
 namespace tntpub
 {
 ////////////////////////////////////////////////////////////////////////
 // Responder
 //
 Responder::Responder(Server& pubSubServer)
-    : _inputBuffer(inputBufferSize),
-      _pubSubServer(pubSubServer),
-      _socket(pubSubServer._server),
-      _sentry(0)
+    : _pubSubServer(pubSubServer),
+      _socket(*pubSubServer.selector(), pubSubServer._server)
 {
     log_info("new client " << static_cast<void*>(this) << " connected");
 
-    _socket.setSelector(_pubSubServer.selector());
     cxxtools::connect(_socket.inputReady, *this, &Responder::onInput);
-    cxxtools::connect(_socket.outputReady, *this, &Responder::onOutput);
+    cxxtools::connect(_socket.outputFailed, *this, &Responder::onOutputError);
     cxxtools::connect(_pubSubServer.messageReceived, *this, &Responder::onDataMessageReceived);
-    _socket.beginRead(_inputBuffer.data(), _inputBuffer.size());
+    _socket.beginRead();
 }
 
 Responder::~Responder()
@@ -62,16 +57,20 @@ void Responder::subscribe(const std::string& topic, Subscription::Type type)
     subscribe(DataMessage::subscribe(topic, type));
 }
 
-void Responder::onInput(cxxtools::IODevice&)
+void Responder::onInput(cxxtools::net::BufferedSocket&)
 {
     log_debug("input detected " << static_cast<void*>(this));
 
-    DestructionSentry sentry(this);
+    cxxtools::DestructionSentry sentry(_sentry);
 
     try
     {
-        auto count = _socket.endRead();
-        _deserializer.advance(_inputBuffer.data(), count, [this, &sentry] (DataMessage& dataMessage) {
+        _socket.endRead();
+
+        auto& input = _socket.inputBuffer();
+        log_debug(input.size() << " bytes available");
+
+        _deserializer.advance(input.data(), input.size(), [this, &sentry] (DataMessage& dataMessage) {
             log_debug("process data message " << cxxtools::Json(dataMessage));
             if (dataMessage.isDataMessage())
             {
@@ -104,59 +103,17 @@ void Responder::onInput(cxxtools::IODevice&)
                 return;
         });
 
+        input.clear();
+        _socket.beginRead();
+
         if (_socket.eof())
             closeClient();
-        else
-            _socket.beginRead(_inputBuffer.data(), _inputBuffer.size());
     }
     catch (const std::exception& e)
     {
         log_warn("failed to read message: " << e.what());
         if (!sentry.deleted())
             closeClient();
-    }
-}
-
-void Responder::onOutput(cxxtools::IODevice&)
-{
-    log_debug("onOutput");
-
-    try
-    {
-        auto count = _socket.endWrite();
-        _outputBuffer.erase(_outputBuffer.begin(), _outputBuffer.begin() + count);
-        if (_outputBuffer.empty())
-        {
-            if (_outputBufferNext.empty())
-            {
-                log_finer("output buffer empty");
-                outputBufferEmpty(*this);
-            }
-            else
-            {
-                log_finer("fetch next output buffer " << _outputBufferNext.size());
-                _outputBuffer.swap(_outputBufferNext);
-                log_finer("begin write " << _outputBuffer.size());
-                _socket.beginWrite(_outputBuffer.data(), _outputBuffer.size());
-            }
-        }
-        else
-        {
-            log_finer("partial write " << _outputBuffer.size() << " left");
-            if (!_outputBufferNext.empty())
-            {
-                log_finer("append next " << _outputBufferNext.size());
-                _outputBuffer.insert(_outputBuffer.end(), _outputBufferNext.begin(), _outputBufferNext.end());
-                _outputBufferNext.clear();
-            }
-            log_finer("begin write " << _outputBuffer.size());
-            _socket.beginWrite(_outputBuffer.data(), _outputBuffer.size());
-        }
-    }
-    catch (const std::exception& e)
-    {
-        log_debug("exception while writing: " << e.what());
-        closeClient();
     }
 }
 
@@ -181,25 +138,14 @@ void Responder::onDataMessageReceived(const DataMessage& dataMessage)
 void Responder::sendMessage(const DataMessage& dataMessage)
 {
     log_debug("send message to client");
-    try
-    {
-        if (_socket.writing())
-        {
-            dataMessage.appendTo(_outputBufferNext);
-            log_finer("next buffer " << _outputBufferNext.size());
-        }
-        else
-        {
-            dataMessage.appendTo(_outputBuffer);
-            log_finer("begin write " << _outputBuffer.size());
-            _socket.beginWrite(_outputBuffer.data(), _outputBuffer.size());
-        }
-    }
-    catch (const std::exception& e)
-    {
-        log_debug("exception while writing: " << e.what());
-        closeClient();
-    }
+    dataMessage.appendTo(_socket.outputBuffer());
+    _socket.beginWrite();
+}
+
+void Responder::onOutputError(cxxtools::net::BufferedSocket&, const std::exception& e)
+{
+    log_debug("exception while writing: " << e.what());
+    closeClient();
 }
 
 void Responder::closeClient()

@@ -108,6 +108,8 @@ bool DataMessageDeserializer::processMessage(std::function<void(DataMessage&)> m
 
     _inputData.erase(0, header.messageLength());
 
+    log_debug("message processed " << _inputData.size() << " left; capacity " << _inputData.capacity());
+
     messageReceived(dataMessage);
     message(dataMessage);
 

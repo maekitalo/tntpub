@@ -11,9 +11,14 @@
 #include <cxxtools/connectable.h>
 #include <cxxtools/signal.h>
 
-#include <cxxtools/net/tcpsocket.h>
+#include <cxxtools/net/bufferedsocket.h>
 
 #include <vector>
+
+namespace cxxtools
+{
+    class DestructionSentry;
+}
 
 namespace tntpub
 {
@@ -28,38 +33,16 @@ class Server;
 //
 class Responder : public cxxtools::Connectable
 {
-    class DestructionSentry
-    {
-        bool _deleted;
-        Responder* _responder;
-
-    public:
-        explicit DestructionSentry(Responder* responder)
-            : _deleted(false),
-              _responder(responder)
-            { _responder->_sentry = this; }
-
-        ~DestructionSentry()
-            { if (!_deleted) _responder->_sentry = 0; }
-
-        void detach()         { _deleted = true; }
-        bool deleted() const  { return _deleted; }
-    };
-
     DataMessageDeserializer _deserializer;
 
-    std::vector<char> _inputBuffer;
-    std::vector<char> _outputBuffer;
-    std::vector<char> _outputBufferNext;
-
     Server& _pubSubServer;
-    cxxtools::net::TcpSocket _socket;
-    DestructionSentry* _sentry;
+    cxxtools::net::BufferedSocket _socket;
+    cxxtools::DestructionSentry* _sentry = nullptr;
 
     std::vector<Subscription> _subscriptions;
 
-    void onInput(cxxtools::IODevice&);
-    void onOutput(cxxtools::IODevice&);
+    void onInput(cxxtools::net::BufferedSocket&);
+    void onOutputError(cxxtools::net::BufferedSocket&, const std::exception&);
 
     void closeClient();
     void beginRead();
