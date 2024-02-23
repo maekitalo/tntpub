@@ -24,6 +24,7 @@ int main(int argc, char* argv[])
 
         cxxtools::Arg<std::string> ip(argc, argv, 'i');
         cxxtools::Arg<unsigned short> port(argc, argv, 'p', 9001);
+        cxxtools::Arg<bool> noparse(argc, argv, 'n');
 
         tntpub::Client client(ip, port);
 
@@ -38,8 +39,15 @@ int main(int argc, char* argv[])
 
         while (true)
         {
-            MyMessage msg;
-            client.readMessage().get(msg);
+            if (noparse)
+            {
+                client.readMessage();
+            }
+            else
+            {
+                MyMessage msg;
+                client.readMessage().get(msg);
+            }
             ++count;
             cxxtools::Timespan t = cxxtools::Clock::getSystemTicks();
             if (t >= nextT)

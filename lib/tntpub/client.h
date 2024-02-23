@@ -115,7 +115,7 @@ public:
     { return _dataMessage.si() >>= obj; }
 
     // reads next message from stream (blocking)
-    const DataMessage& readMessage();
+    DataMessage& readMessage();
 
     // reads next message
     template <typename Obj> void readMessage(Obj& obj)

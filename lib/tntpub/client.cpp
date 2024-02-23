@@ -109,7 +109,7 @@ void Client::flush()
     }
 }
 
-const DataMessage& Client::readMessage()
+DataMessage& Client::readMessage()
 {
     do
     {

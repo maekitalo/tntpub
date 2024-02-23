@@ -40,14 +40,17 @@ DataMessage DataMessage::unsubscribe(const std::string& topic, Subscription::Typ
 DataMessage::DataMessage(const std::string& topic, Type type, const cxxtools::SerializationInfo& data)
     : _type(type),
       _topic(topic),
-      _createDateTime(cxxtools::Clock::getSystemTime())
+      _createDateTime(cxxtools::Clock::getSystemTime()),
+      _si(data)
 {
-    setData(data);
+    setData(_si);
 }
 
 void DataMessage::setData(const cxxtools::SerializationInfo& si)
 {
     _data = cxxtools::bin::Serializer::toString(si);
+    if (&si != &_si)
+        _si.clear();
 }
 
 const cxxtools::SerializationInfo& DataMessage::si() const

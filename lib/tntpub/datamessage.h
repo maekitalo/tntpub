@@ -124,9 +124,8 @@ public:
           _topic(topic),
           _createDateTime(cxxtools::Clock::getSystemTime())
     {
-        cxxtools::SerializationInfo si;
-        si <<= obj;
-        setData(si);
+        _si <<= obj;
+        setData(_si);
     }
 
     static DataMessage subscribe(const std::string& topic, Subscription::Type type = Subscription::Type::Full, const std::string& data = std::string());
