@@ -55,7 +55,7 @@ void DataMessage::setData(const cxxtools::SerializationInfo& si)
 
 const cxxtools::SerializationInfo& DataMessage::si() const
 {
-    if (_si.isNull())
+    if (_si.isNull() && !_data.empty())
     {
         std::stringbuf ss(_data);
         cxxtools::bin::Deserializer deserializer(ss);
