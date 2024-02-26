@@ -52,7 +52,8 @@ int main(int argc, char* argv[])
             cxxtools::Timespan t = cxxtools::Clock::getSystemTicks();
             if (t >= nextT)
             {
-                std::cout << count << '\t' << count/cxxtools::Seconds(t - lastT) << " msg/s" << std::endl;
+                cxxtools::Milliseconds lastDelay = cxxtools::Clock::getSystemTime() - client.getMessage().createDateTime();
+                std::cout << count << '\t' << count/cxxtools::Seconds(t - lastT) << " msg/s;\tlast delay " << lastDelay << std::endl;
                 lastT = t;
                 nextT = lastT + cxxtools::Seconds(1);
                 count = 0;

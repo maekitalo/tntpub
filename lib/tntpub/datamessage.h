@@ -174,6 +174,9 @@ public:
     template <typename Obj> void get(Obj& obj) const
     { si() >>= obj; }
 
+    void touch()
+        { _createDateTime = cxxtools::Clock::getSystemTime(); }
+
     void appendTo(std::vector<char>& buffer) const;
 };
 

@@ -22,17 +22,22 @@ cxxtools::EventLoop loop;
 cxxtools::Timespan lastT;
 cxxtools::Timespan nextT;
 unsigned count;
+bool noparse;
 
 void onMessageReceived(const tntpub::DataMessage& message)
 {
-    MyMessage msg;
-    message.get(msg);
+    if (!noparse)
+    {
+        MyMessage msg;
+        message.get(msg);
+    }
 
     ++count;
     cxxtools::Timespan t = cxxtools::Clock::getSystemTicks();
     if (t >= nextT)
     {
-        std::cout << count << '\t' << count/cxxtools::Seconds(t - lastT) << " msg/s" << std::endl;
+        cxxtools::Milliseconds lastDelay = cxxtools::Clock::getSystemTime() - message.createDateTime();
+        std::cout << count << '\t' << count/cxxtools::Seconds(t - lastT) << " msg/s;\tlast delay " << lastDelay << std::endl;
         lastT = t;
         nextT = lastT + cxxtools::Seconds(1);
         count = 0;
@@ -52,6 +57,7 @@ int main(int argc, char* argv[])
 
         cxxtools::Arg<std::string> ip(argc, argv, 'i');
         cxxtools::Arg<unsigned short> port(argc, argv, 'p', 9001);
+        noparse = cxxtools::Arg<bool>(argc, argv, 'n');
 
         tntpub::Client client(&loop, ip, port);
 

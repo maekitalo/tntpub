@@ -47,6 +47,7 @@ int main(int argc, char* argv[])
                 auto dm = tntpub::DataMessage::create(topic, msg);
                 for (unsigned n = 0; n < count; ++n)
                 {
+                    dm.touch();
                     client.sendMessage(dm);
                     ++fcount;
                     if (flush > 0 && fcount % flush == 0)
