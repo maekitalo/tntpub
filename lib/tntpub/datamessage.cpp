@@ -103,15 +103,15 @@ bool DataMessageDeserializer::processMessage(std::function<void(DataMessage&)> m
         return false;
     }
 
-    std::string topic(_inputData.data() + header.topicOffset(), header.topicLength());
-    log_debug("topic: <" << topic << '>');
-    std::string data(_inputData.data() + header.dataOffset(), header.dataLength());
-
-    DataMessage dataMessage(topic, header._type, header.createDateTime(), data);
+    DataMessage dataMessage(
+        std::string(_inputData.data() + header.topicOffset(), header.topicLength()),
+        header._type,
+        header.createDateTime(),
+        std::string(_inputData.data() + header.dataOffset(), header.dataLength()));
 
     _inputData.erase(0, header.messageLength());
 
-    log_debug("message processed " << _inputData.size() << " left; capacity " << _inputData.capacity());
+    log_debug("message to topic <" << dataMessage.topic() << "> processed " << _inputData.size() << " left; capacity " << _inputData.capacity());
 
     messageReceived(dataMessage);
     message(dataMessage);
