@@ -104,10 +104,11 @@ void Responder::onInput(cxxtools::net::BufferedSocket&)
         });
 
         input.clear();
-        _socket.beginRead();
 
         if (_socket.eof())
             closeClient();
+        else
+            _socket.beginRead();
     }
     catch (const std::exception& e)
     {
