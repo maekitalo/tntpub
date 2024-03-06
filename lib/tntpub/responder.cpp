@@ -75,6 +75,7 @@ void Responder::onInput(cxxtools::net::BufferedSocket&)
             if (dataMessage.isDataMessage())
             {
                 log_debug("data message to topic <" << dataMessage.topic() << "> received");
+                dataMessage.setNextSerial();
                 _pubSubServer.processMessage(*this, dataMessage);
             }
             else if (dataMessage.isSubscribeMessage())

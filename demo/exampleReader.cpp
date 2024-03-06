@@ -42,11 +42,13 @@ int main(int argc, char* argv[])
         {
             // wait for a message and deserialize it
             MyMessage msg;
-            client.readMessage().get(msg);
+            auto dataMessage = client.readMessage();
+            dataMessage.get(msg);
 
             log_info("got message");
 
             // output in json format
+            std::cout << cxxtools::Json(dataMessage).beautify(true);
             std::cout << cxxtools::Json(msg).beautify(true);
         }
     }

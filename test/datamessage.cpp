@@ -13,6 +13,7 @@ public:
         registerMethod("subscribeMessage", *this, &DataMessageTest::subscribeMessage);
         registerMethod("unsubscribeMessage", *this, &DataMessageTest::unsubscribeMessage);
         registerMethod("serialize", *this, &DataMessageTest::serialize);
+        registerMethod("serial", *this, &DataMessageTest::serial);
     }
 
     void create();
@@ -20,6 +21,7 @@ public:
     void subscribeMessage();
     void unsubscribeMessage();
     void serialize();
+    void serial();
 };
 
 cxxtools::unit::RegisterTest<DataMessageTest> register_DataMessageTest;
@@ -81,4 +83,15 @@ void DataMessageTest::serialize()
     CXXTOOLS_UNIT_ASSERT(messageProcessed);
     CXXTOOLS_UNIT_ASSERT_EQUALS(deserializer.in_avail(), 0);
     CXXTOOLS_UNIT_ASSERT(v == result);
+}
+
+void DataMessageTest::serial()
+{
+    auto dm = tntpub::DataMessage::createPlain("foo", "data");
+    auto dm2 = dm;
+
+    CXXTOOLS_UNIT_ASSERT_EQUALS(dm.serial(), dm2.serial());
+
+    dm2.setNextSerial();
+    CXXTOOLS_UNIT_ASSERT(dm2.serial() > dm.serial());
 }

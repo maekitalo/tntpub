@@ -43,8 +43,9 @@ public:
     struct Header
     {
         uint32_t _messageLength;
-        uint64_t _createDateJulian;
+        unsigned _createDateJulian;
         uint64_t _createTimeUSecs;
+        uint32_t _serial;
         uint16_t _topicLength;
         Type _type;
 
@@ -66,11 +67,13 @@ public:
 private:
     Type _type = Type::Null;
     std::string _topic;
+    uint32_t _serial = 0;
     cxxtools::UtcDateTime _createDateTime;
     std::string _data;
     mutable cxxtools::SerializationInfo _si;
 
     void setData(const cxxtools::SerializationInfo& si);
+    static uint32_t _lastSerial;
 
     DataMessage(const std::string& topic, Type type, const cxxtools::UtcDateTime& createDateTime, const std::string& data)
         : _type(type),
@@ -94,6 +97,7 @@ public:
     DataMessage(const DataMessage& dm)
         : _type(dm._type),
           _topic(dm._topic),
+          _serial(dm._serial),
           _createDateTime(dm._createDateTime),
           _data(dm._data),
           _si()
@@ -103,6 +107,7 @@ public:
     {
         _type = dm._type;
         _topic = dm._topic;
+        _serial = dm._serial;
         _createDateTime = dm._createDateTime;
         _data = dm._data;
         _si.clear();
@@ -121,6 +126,7 @@ public:
 #endif
     DataMessage(const std::string& topic, const Obj& obj)
         : _type(Type::Data),
+          _serial(0),
           _topic(topic),
           _createDateTime(cxxtools::Clock::getSystemTime())
     {
@@ -150,6 +156,10 @@ public:
     /// Returns the type
     Type type() const 
         { return _type; }
+    uint32_t serial() const
+        { return _serial; }
+    static uint32_t lastSerial()
+        { return _lastSerial; }
     bool isDataMessage() const
         { return _type == Type::Data || _type == Type::PlainData; }
     bool isSubscribeMessage() const
@@ -176,6 +186,11 @@ public:
 
     void touch()
         { _createDateTime = cxxtools::Clock::getSystemTime(); }
+
+    void setNextSerial()
+        { _serial = ++_lastSerial; }
+    void serial(uint32_t v)
+        { _serial = v; }
 
     void appendTo(std::vector<char>& buffer) const;
 };

@@ -14,6 +14,8 @@ log_define("tntpub.datamessage")
 
 namespace tntpub
 {
+uint32_t DataMessage::_lastSerial = 0;
+
 DataMessage DataMessage::subscribe(const std::string& topic, Subscription::Type type, const std::string& data)
 {
     return DataMessage(
@@ -78,6 +80,7 @@ void DataMessage::appendTo(std::vector<char>& buffer) const
     header._createTimeUSecs = _createDateTime.time().totalUSecs();
     header._topicLength = _topic.size();
     header._type = _type;
+    header._serial = _serial;
 
     log_debug("header created; " << cxxtools::Json(header));
 
@@ -109,6 +112,7 @@ bool DataMessageDeserializer::processMessage(std::function<void(DataMessage&)> m
         header.createDateTime(),
         std::string(_inputData.data() + header.dataOffset(), header.dataLength()));
 
+    dataMessage._serial = header._serial;
     _inputData.erase(0, header.messageLength());
 
     log_debug("message to topic <" << dataMessage.topic() << "> processed " << _inputData.size() << " left; capacity " << _inputData.capacity());
@@ -132,6 +136,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const DataMessage& dm)
 {
     si.addMember("type") <<= cxxtools::EnumClass(dm._type);
     si.addMember("topic") <<= dm._topic;
+    si.addMember("serial") <<= dm._serial;
     si.addMember("createDateTime") <<= dm._createDateTime;
     si.addMember("data") <<= dm._data;
 }
@@ -140,6 +145,7 @@ void operator>>= (const cxxtools::SerializationInfo& si, DataMessage& dm)
 {
     si.getMember("type") >>= cxxtools::EnumClass(dm._type);
     si.getMember("topic") >>= dm._topic;
+    si.getMember("serial") >>= dm._serial;
     si.getMember("createDateTime") >>= dm._createDateTime;
     si.getMember("data") >>= dm._data;
 }
