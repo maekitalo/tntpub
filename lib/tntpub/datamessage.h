@@ -102,7 +102,7 @@ public:
     DataMessage& operator=(const DataMessage& dm)
     {
         _type = dm._type;
-        _topic = _topic;
+        _topic = dm._topic;
         _createDateTime = dm._createDateTime;
         _data = dm._data;
         _si.clear();
