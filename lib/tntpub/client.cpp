@@ -173,7 +173,6 @@ void Client::onOutput(cxxtools::IODevice&)
     {
         log_warn("output failed: " << e.what());
         _peer.close();
-        closed(*this);
     }
 }
 
