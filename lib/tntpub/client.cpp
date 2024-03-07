@@ -130,15 +130,18 @@ void Client::onOutput(cxxtools::IODevice&)
     {
         auto count = _peer.endWrite();
         _outputBuffer.erase(_outputBuffer.begin(), _outputBuffer.begin() + count);
+        log_finer(count << " bytes written, " << _outputBuffer.size() << " left");
 
         if (_outputBuffer.empty())
         {
             if (_outputBufferNext.empty())
             {
+                log_finer("output buffer empty - signal messagesSent");
                 messagesSent(*this);
             }
             else
             {
+                log_finer("output buffer written, take next buffer " << _outputBufferNext.size());
                 _outputBuffer.swap(_outputBufferNext);
                 _peer.beginWrite(_outputBuffer.data(), _outputBuffer.size());
             }
@@ -147,6 +150,7 @@ void Client::onOutput(cxxtools::IODevice&)
         {
             if (!_outputBufferNext.empty())
             {
+                log_finer("add " << _outputBufferNext.size() << " bytes to output buffer");
                 _outputBuffer.insert(_outputBuffer.end(), _outputBufferNext.begin(), _outputBufferNext.end());
                 _outputBufferNext.clear();
             }
