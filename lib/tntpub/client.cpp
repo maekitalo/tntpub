@@ -48,22 +48,6 @@ void Client::doSendMessage(const DataMessage& dataMessage)
             dataMessage.appendTo(_outputBufferNext);
 
             log_finer("output buffer " << _outputBufferNext.size() << " buffer size " << bufferSize << " wavail=" << _peer.wavail());
-            if (_peer.selector() == nullptr && _outputBufferNext.size() > bufferSize && _peer.wavail())
-            {
-                log_finer("auto sync");
-                auto count = _peer.endWrite();
-                _outputBuffer.erase(_outputBuffer.begin(), _outputBuffer.begin() + count);
-                if (_outputBuffer.empty())
-                {
-                    _outputBuffer.swap(_outputBufferNext);
-                }
-                else
-                {
-                    _outputBuffer.insert(_outputBuffer.end(), _outputBufferNext.begin(), _outputBufferNext.end());
-                    _outputBufferNext.clear();
-                }
-                _peer.beginWrite(_outputBuffer.data(), _outputBuffer.size());
-            }
         }
         else
         {
