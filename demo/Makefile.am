@@ -5,6 +5,7 @@ noinst_HEADERS = \
 noinst_PROGRAMS = \
 	exampleAsyncReader \
 	exampleReader \
+	exampleAsyncSender \
 	exampleSender \
 	readerBenchmarker \
 	readerBenchmarkerAsync \
@@ -24,6 +25,11 @@ exampleReader_SOURCES = \
 	exampleReader.cpp
 
 exampleReader_LDFLAGS = -lcxxtools -lcxxtools-bin
+
+exampleAsyncSender_SOURCES = \
+	exampleAsyncSender.cpp
+
+exampleAsyncSender_LDFLAGS = -lcxxtools -lcxxtools-bin
 
 exampleSender_SOURCES = \
 	exampleSender.cpp

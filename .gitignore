@@ -43,6 +43,7 @@ server/tntpubsender
 demo/alarmClient
 demo/alarmServer
 demo/exampleAsyncReader
+demo/exampleAsyncSender
 demo/exampleReader
 demo/exampleSender
 demo/readerBenchmarker
