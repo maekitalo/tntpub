@@ -27,6 +27,7 @@ Responder::Responder(Server& pubSubServer)
     log_info("new client " << static_cast<void*>(this) << " connected");
 
     cxxtools::connect(_socket.inputReady, *this, &Responder::onInput);
+    cxxtools::connect(_socket.outputBufferEmpty, *this, &Responder::onOutputBufferEmpty);
     cxxtools::connect(_socket.outputFailed, *this, &Responder::onOutputError);
     cxxtools::connect(_pubSubServer.messageReceived, *this, &Responder::onDataMessageReceived);
     _socket.beginRead();
@@ -142,6 +143,12 @@ void Responder::sendMessage(const DataMessage& dataMessage)
     log_debug("send message to client");
     dataMessage.appendTo(_socket.outputBuffer());
     _socket.beginWrite();
+}
+
+void Responder::onOutputBufferEmpty(cxxtools::net::BufferedSocket&)
+{
+    log_debug("output buffer empty");
+    outputBufferEmpty(*this);
 }
 
 void Responder::onOutputError(cxxtools::net::BufferedSocket&, const std::exception& e)

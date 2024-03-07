@@ -42,6 +42,7 @@ class Responder : public cxxtools::Connectable
     std::vector<Subscription> _subscriptions;
 
     void onInput(cxxtools::net::BufferedSocket&);
+    void onOutputBufferEmpty(cxxtools::net::BufferedSocket&);
     void onOutputError(cxxtools::net::BufferedSocket&, const std::exception&);
 
     void closeClient();
