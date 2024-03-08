@@ -3,13 +3,12 @@
  *
  */
 
-#include "mymessage.h"
-
 #include <tntpub/client.h>
 
 #include <cxxtools/clock.h>
 #include <cxxtools/arg.h>
 #include <cxxtools/log.h>
+#include <cxxtools/serializationinfo.h>
 
 #include <exception>
 #include <iostream>
@@ -45,7 +44,7 @@ int main(int argc, char* argv[])
             }
             else
             {
-                MyMessage msg;
+                cxxtools::SerializationInfo msg;
                 client.readMessage().get(msg);
             }
             ++count;

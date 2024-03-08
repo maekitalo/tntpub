@@ -3,10 +3,9 @@
  *
  */
 
-#include "mymessage.h"
-
 #include <tntpub/client.h>
 
+#include <cxxtools/serializationinfo.h>
 #include <cxxtools/json.h>
 #include <cxxtools/arg.h>
 #include <cxxtools/log.h>
@@ -34,8 +33,9 @@ int main(int argc, char* argv[])
         std::string topic = argv[1];
 
         tntpub::Client client(ip, port);
+        client.autoSync(flush == 0);
 
-        MyMessage msg;
+        cxxtools::SerializationInfo msg;
 
         try
         {
@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
                     dm.touch();
                     client.sendMessage(dm);
                     ++fcount;
-                    if (flush > 0 && fcount % flush == 0)
+                    if (!client.autoSync() && fcount % flush == 0)
                         client.flush();
                 }
             }

@@ -1,7 +1,6 @@
-#include "mymessage.h"
-
 #include <tntpub/client.h>
 
+#include <cxxtools/serializationinfo.h>
 #include <cxxtools/json.h>
 #include <cxxtools/arg.h>
 #include <cxxtools/eventloop.h>
@@ -85,7 +84,7 @@ int main(int argc, char* argv[])
 
         App app(ip, port, flush);
 
-        MyMessage msg;
+        cxxtools::SerializationInfo msg;
 
         try
         {
