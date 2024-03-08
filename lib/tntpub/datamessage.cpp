@@ -14,7 +14,7 @@ log_define("tntpub.datamessage")
 
 namespace tntpub
 {
-uint32_t DataMessage::_lastSerial = 0;
+decltype(DataMessage::_serial) DataMessage::_lastSerial = 0;
 
 DataMessage DataMessage::subscribe(const std::string& topic, Subscription::Type type, const std::string& data)
 {

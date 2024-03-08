@@ -45,7 +45,7 @@ public:
         uint32_t _messageLength;
         unsigned _createDateJulian;
         uint64_t _createTimeUSecs;
-        uint32_t _serial;
+        uint64_t _serial;
         uint16_t _topicLength;
         Type _type;
 
@@ -67,13 +67,13 @@ public:
 private:
     Type _type = Type::Null;
     std::string _topic;
-    uint32_t _serial = 0;
+    decltype(Header::_serial) _serial = 0;
     cxxtools::UtcDateTime _createDateTime;
     std::string _data;
     mutable cxxtools::SerializationInfo _si;
 
     void setData(const cxxtools::SerializationInfo& si);
-    static uint32_t _lastSerial;
+    static decltype(_serial)  _lastSerial;
 
     DataMessage(const std::string& topic, Type type, const cxxtools::UtcDateTime& createDateTime, const std::string& data)
         : _type(type),
@@ -156,9 +156,9 @@ public:
     /// Returns the type
     Type type() const 
         { return _type; }
-    uint32_t serial() const
+    decltype(_serial) serial() const
         { return _serial; }
-    static uint32_t lastSerial()
+    static decltype(_serial) lastSerial()
         { return _lastSerial; }
     bool isDataMessage() const
         { return _type == Type::Data || _type == Type::PlainData; }
