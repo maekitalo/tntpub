@@ -26,6 +26,7 @@ class Client : public MessageSinkSource, public cxxtools::Connectable
 
     DataMessageDeserializer _deserializer;
     DataMessage _dataMessage;
+    bool _autoSync = false;
 
     void onConnected(cxxtools::net::TcpSocket&);
     void onClosed(cxxtools::net::TcpSocket&);
@@ -106,6 +107,9 @@ public:
         { doSendMessage(DataMessage::unsubscribe(topic)); return *this; }
 
     void flush();
+
+    void autoSync(bool sw)  { _autoSync = sw; if (_autoSync) flush(); }
+    bool autoSync() const   { return _autoSync; }
 
     // returns the last received data message
     const DataMessage& getMessage()

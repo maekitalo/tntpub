@@ -40,7 +40,7 @@ Client& Client::subscribe(const std::string& topic, Subscription::Type type)
 void Client::doSendMessage(const DataMessage& dataMessage)
 {
     log_debug("sendMessage of type <" << static_cast<std::underlying_type<DataMessage::Type>::type>(dataMessage.type()) << '>');
-    if (_peer.selector())
+    if (!_autoSync)
     {
         if (_peer.writing())
         {
