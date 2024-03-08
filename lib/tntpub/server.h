@@ -28,9 +28,14 @@ class Server : public MessageSinkSource, public cxxtools::Connectable
 
     void onConnectionPending(cxxtools::net::TcpServer&);
 
-    virtual void processMessage(Responder& client, DataMessage& dataMessage);
+    void processMessage(Responder& client, DataMessage& dataMessage);
 
 protected:
+    virtual bool onDataMessageReceived(Responder&, DataMessage&)
+        { return true; }
+    virtual void onDataMessageProcessed(Responder&, const DataMessage&)
+        { }
+
     virtual Responder* createResponder();
     void doSendMessage(const DataMessage& msg) override;
 

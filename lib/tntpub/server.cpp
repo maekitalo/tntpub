@@ -48,14 +48,18 @@ Responder* Server::createResponder()
     return new Responder(*this);
 }
 
-void Server::processMessage(Responder&, DataMessage& dataMessage)
+void Server::processMessage(Responder& responder, DataMessage& dataMessage)
 {
-    doSendMessage(dataMessage);
+    if (onDataMessageReceived(responder, dataMessage))
+    {
+        doSendMessage(dataMessage);
+        onDataMessageProcessed(responder, dataMessage);
+    }
 }
 
-void Server::doSendMessage(const DataMessage& msg)
+void Server::doSendMessage(const DataMessage& dataMessage)
 {
-    dispatchMessage(msg);
+    dispatchMessage(dataMessage);
 }
 
 }
