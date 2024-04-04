@@ -96,12 +96,12 @@ public:
         { return _peer.isConnected(); }
 
     // subscribe to topic
-    Client& subscribe(const std::string& topic, Subscription::Type type = Subscription::Type::Full);
+    Client& subscribe(const std::string& topic, Subscription::Type type = Subscription::Type::Full, const std::string& data = std::string());
 
     // subscribe to topic with additional information
     template <typename Obj>
-    Client& subscribe(const std::string& topic, const Obj& obj, Subscription::Type type = Subscription::Type::Full)
-        { doSendMessage(DataMessage::subscribe(topic, obj, type)); return *this; }
+    Client& subscribeWithObject(const std::string& topic, const Obj& obj, Subscription::Type type = Subscription::Type::Full)
+        { doSendMessage(DataMessage::subscribeWithObject(topic, obj, type)); return *this; }
 
     Client& unsubscribe(const std::string& topic)
         { doSendMessage(DataMessage::unsubscribe(topic)); return *this; }

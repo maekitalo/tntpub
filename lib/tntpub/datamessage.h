@@ -136,6 +136,18 @@ public:
 
     static DataMessage subscribe(const std::string& topic, Subscription::Type type = Subscription::Type::Full, const std::string& data = std::string());
 
+    template <typename T>
+    static DataMessage subscribeWithObject(const std::string& topic, const T& obj, Subscription::Type type = Subscription::Type::Full)
+    {
+        cxxtools::SerializationInfo si;
+        si <<= obj;
+        return DataMessage(topic,
+            type == Subscription::Type::Praefix ? Type::SubscribePraefix :
+            type == Subscription::Type::Regex   ? Type::SubscribeRegex   :
+                                                  Type::SubscribeFull,
+            si);
+    }
+
     static DataMessage unsubscribe(const std::string& topic, Subscription::Type type = Subscription::Type::Null);
 
     static DataMessage createPlain(const std::string& topic, const std::string& data)

@@ -31,9 +31,9 @@ void Client::beginRead()
     _peer.beginRead(_inputBuffer.data(), _inputBuffer.size());
 }
 
-Client& Client::subscribe(const std::string& topic, Subscription::Type type)
+Client& Client::subscribe(const std::string& topic, Subscription::Type type, const std::string& data)
 {
-    doSendMessage(DataMessage::subscribe(topic, type));
+    doSendMessage(DataMessage::subscribe(topic, type, data));
     return *this;
 }
 
