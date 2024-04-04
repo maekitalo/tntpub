@@ -88,6 +88,21 @@ void DataMessage::appendTo(std::vector<char>& buffer) const
     _data.copy(ptr + header.dataOffset(), _data.size());
 }
 
+DataMessage DataMessage::createFromBuffer(const char* data, unsigned size)
+{
+    DataMessage result;
+
+    DataMessageDeserializer deserializer;
+    deserializer.addData(data, size);
+
+    if (!deserializer.processMessage([&result] (DataMessage& dm) {
+        result = std::move(dm);
+    }))
+        throw std::runtime_error("failed to create data message from data");
+
+    return result;
+}
+
 bool DataMessageDeserializer::processMessage(std::function<void(DataMessage&)> messageReceived)
 {
     log_debug("process message; " << _inputData.size() << " bytes available");

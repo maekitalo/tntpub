@@ -193,6 +193,9 @@ public:
         { _serial = v; }
 
     void appendTo(std::vector<char>& buffer) const;
+    static DataMessage createFromBuffer(const char* data, unsigned size);
+    static DataMessage createFromBuffer(const std::vector<char>& buffer)
+        { return createFromBuffer(buffer.data(), buffer.size()); }
 };
 
 class DataMessageDeserializer

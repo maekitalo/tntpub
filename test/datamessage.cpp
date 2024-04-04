@@ -13,6 +13,7 @@ public:
         registerMethod("subscribeMessage", *this, &DataMessageTest::subscribeMessage);
         registerMethod("unsubscribeMessage", *this, &DataMessageTest::unsubscribeMessage);
         registerMethod("serialize", *this, &DataMessageTest::serialize);
+        registerMethod("fromBuffer", *this, &DataMessageTest::fromBuffer);
         registerMethod("serial", *this, &DataMessageTest::serial);
     }
 
@@ -21,6 +22,7 @@ public:
     void subscribeMessage();
     void unsubscribeMessage();
     void serialize();
+    void fromBuffer();
     void serial();
 };
 
@@ -82,6 +84,23 @@ void DataMessageTest::serialize()
 
     CXXTOOLS_UNIT_ASSERT(messageProcessed);
     CXXTOOLS_UNIT_ASSERT_EQUALS(deserializer.in_avail(), 0);
+    CXXTOOLS_UNIT_ASSERT(v == result);
+}
+
+void DataMessageTest::fromBuffer()
+{
+    std::vector<int> v{ 3, 4, 6 };
+    auto dm = tntpub::DataMessage::create("foo", v);
+
+    std::vector<char> buffer;
+    dm.appendTo(buffer);
+    CXXTOOLS_UNIT_ASSERT(buffer.size() > sizeof(tntpub::DataMessage::Header));
+
+    auto dm2 = tntpub::DataMessage::createFromBuffer(buffer);
+
+    std::vector<int> result;
+    dm2.get(result);
+
     CXXTOOLS_UNIT_ASSERT(v == result);
 }
 
