@@ -54,3 +54,7 @@ demo/recoverServer
 demo/plainMessageSender
 demo/plainMessageReceiver
 test/alltests
+xsimu/pubCopy
+xsimu/pubDelay
+xsimu/pubGen
+xsimu/pubGenT

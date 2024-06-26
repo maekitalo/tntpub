@@ -164,6 +164,9 @@ public:
     /// Returns the topic where the message is sent through.
     const std::string& topic() const
         { return _topic; }
+    /// Sets the topic of the message.
+    void topic(const std::string& topic)
+        { _topic = topic; }
 
     /// Returns the type
     Type type() const 
