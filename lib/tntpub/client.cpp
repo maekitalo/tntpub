@@ -40,7 +40,16 @@ Client& Client::subscribe(const std::string& topic, Subscription::Type type, con
 void Client::doSendMessage(const DataMessage& dataMessage)
 {
     log_debug("sendMessage of type <" << static_cast<std::underlying_type<DataMessage::Type>::type>(dataMessage.type()) << '>');
-    if (!_autoSync)
+    if (_autoSync)
+    {
+        dataMessage.appendTo(_outputBuffer);
+        while (!_outputBuffer.empty())
+        {
+            auto count = _peer.write(_outputBuffer.data(), _outputBuffer.size());
+            _outputBuffer.erase(_outputBuffer.begin(), _outputBuffer.begin() + count);
+        }
+    }
+    else
     {
         if (_peer.writing())
         {
@@ -54,15 +63,6 @@ void Client::doSendMessage(const DataMessage& dataMessage)
             log_finer("append to buffer and begin writing");
             dataMessage.appendTo(_outputBuffer);
             _peer.beginWrite(_outputBuffer.data(), _outputBuffer.size());
-        }
-    }
-    else
-    {
-        dataMessage.appendTo(_outputBuffer);
-        while (!_outputBuffer.empty())
-        {
-            auto count = _peer.write(_outputBuffer.data(), _outputBuffer.size());
-            _outputBuffer.erase(_outputBuffer.begin(), _outputBuffer.begin() + count);
         }
     }
 }
