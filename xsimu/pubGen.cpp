@@ -20,6 +20,9 @@ class PubGen : public cxxtools::Connectable
     unsigned _num;          // number of records to send
     unsigned _bulk;         // number of entries to send at once
 
+    cxxtools::Timespan _startClock;
+
+    unsigned _totalCount;   // number of entries sent
     unsigned _count;        // number of entries sent in the current second
     unsigned _countBulk;    // number of sends
     unsigned _countPending; // number of sent messages
@@ -37,6 +40,7 @@ public:
           _topic(topic),
           _num(num),
           _bulk(bulk),
+          _totalCount(0),
           _count(0),
           _countBulk(0),
           _countPending(0)
@@ -66,8 +70,13 @@ void PubGen::send()
 
     if (count == 0)
     {
-        onTimeout();
         _eventLoop.exit();
+
+        auto usecs = cxxtools::Clock::getSystemTicks().totalUSecs() - _startClock.totalUSecs();
+        auto secs = usecs / 1e6;
+
+        std::cout << _totalCount << " msg " << secs << " secs " << static_cast<unsigned>(_totalCount / secs) << " msg/s " << _countBulk << " writes/s" << std::endl;
+        return;
     }
 
     if (_num > 0)
@@ -83,6 +92,7 @@ void PubGen::send()
 void PubGen::onConnected(tntpub::Client&)
 {
     _client.endConnect();
+    _startClock = cxxtools::Clock::getSystemTicks();
     send();
 }
 
@@ -96,6 +106,7 @@ void PubGen::onMessagesSent(tntpub::Client&)
 {
     log_debug(_countPending << " messages sent");
     _count += _countPending;
+    _totalCount += _countPending;
     _countPending = 0;
     send();
 }
@@ -106,7 +117,7 @@ void PubGen::onTimeout()
 
     if (_count > 0)
     {
-        std::cout << _count << " msg/s " << _countBulk << " writes/s" << std::endl;
+        std::cout << _totalCount << " msg " << _count << " msg/s " << _countBulk << " writes/s" << std::endl;
         _countBulk = 0;
         _count = 0;
     }

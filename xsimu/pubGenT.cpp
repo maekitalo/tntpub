@@ -53,7 +53,6 @@ public:
 
     void run()
     {
-        _timer.start(cxxtools::Seconds(1));
         _eventLoop.run();
     }
 };
@@ -61,7 +60,8 @@ public:
 void PubGen::onConnected(tntpub::Client&)
 {
     _client.endConnect();
-    _throttleTimer.start(cxxtools::Seconds(1) / static_cast<double>(_msgPerSecond));
+    _timer.start(cxxtools::Seconds(1));
+    _throttleTimer.start(cxxtools::Seconds(1.0 / _msgPerSecond));
 }
 
 void PubGen::onClosed(tntpub::Client&)
