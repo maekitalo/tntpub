@@ -13,7 +13,7 @@ server in own applications. It runs in the _cxxtools_ event loop.
 
 The main features are:
     * only TCP/IP communication
-    * send and receive _cxxtools_ serializable objects
+    * send and receive _cxxtools_ serializable objects or just a plain buffer
     * no configuration
     * no distinction between publisher and subscriber - every client may
       subscribe and can send messages to topics
@@ -21,15 +21,17 @@ The main features are:
 Technical implementation
 ------------------------
 
-The system uses _cxxtools_ for TCP/IP communcation and _cxxtools_ binary
-serialization for transport.
+The system uses _cxxtools_ for TCP/IP communcation and when sending objects
+_cxxtools_ binary serialization for transport.
 
 The server runs fully non blocking in the _cxxtools_ event loop. The client can
 be used in blocking or non blocking mode. When non blocking the client runs in
 a _cxxtools_ event loop and processes and sends _cxxtools_ signals.
 
 Cxxtools logging is used. The server initializes logging by reading
-`log.properties` or `log.xml`.
+`$PROCESSNAME.properties`, `$PROCESSNAME.json`, `$PROCESSNAME.xml`,
+`log.properties`, `log.json` or `log.xml`. See cxxtools documenation for
+further details.
 
 Examples
 --------
