@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
     try
     {
         // initialize logging (read `log.properties` or `log.xml`)
-        log_init();
+        log_init(argc, argv);
 
         // accept arguments -i for ip and -p for port
         cxxtools::Arg<std::string> ip(argc, argv, 'i');
