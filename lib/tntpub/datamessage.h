@@ -37,7 +37,8 @@ public:
         UnsubscribePraefix = 'p',
         UnsubscribeRegex = 'x',
         Data = 'D',
-        PlainData = 'R'
+        PlainData = 'R',
+        System = 'S'
     };
 
     struct Header
@@ -161,6 +162,14 @@ public:
         return DataMessage(topic, Type::Data, si);
     }
 
+    template <typename T>
+    static DataMessage createSystem(const std::string& topic, const T& obj)
+    {
+        cxxtools::SerializationInfo si;
+        si <<= obj;
+        return DataMessage(topic, Type::System, si);
+    }
+
     /// Returns the topic where the message is sent through.
     const std::string& topic() const
         { return _topic; }
@@ -181,6 +190,8 @@ public:
         { return _type == Type::SubscribeFull || _type == Type::SubscribePraefix || _type == Type::SubscribeRegex; }
     bool isUnsubscribeMessage() const
         { return _type == Type::UnsubscribeFull || _type == Type::UnsubscribePraefix || _type == Type::UnsubscribeRegex; }
+    bool isSystemMessage() const
+        { return _type == Type::System; }
 
     /// Returns the time, when the data message is created and hence initially received.
     const cxxtools::UtcDateTime& createDateTime() const
