@@ -26,7 +26,7 @@ class Client : public MessageSinkSource, public cxxtools::Connectable
 
     DataMessageDeserializer _deserializer;
     DataMessage _dataMessage;
-    bool _autoSync = false;
+    bool _autoSync;
 
     void onConnected(cxxtools::net::TcpSocket&);
     void onClosed(cxxtools::net::TcpSocket&);
@@ -42,21 +42,25 @@ class Client : public MessageSinkSource, public cxxtools::Connectable
 
 public:
     explicit Client(cxxtools::SelectorBase* selector = 0)
+        : _autoSync(selector == nullptr)
     {
         setSelector(selector);
         init();
     }
 
     Client(const std::string& ipaddr, unsigned short int port)
-        : _peer(ipaddr, port)
+        : _peer(ipaddr, port),
+          _autoSync(true)
         { init(); beginRead(); }
 
     explicit Client(const cxxtools::net::AddrInfo& addrinfo)
-        : _peer(addrinfo)
+        : _peer(addrinfo),
+          _autoSync(true)
         { init(); beginRead(); }
 
     explicit Client(cxxtools::SelectorBase* selector, const std::string& ipaddr, unsigned short int port)
-        : _peer(ipaddr, port)
+        : _peer(ipaddr, port),
+          _autoSync(selector == nullptr)
     {
         setSelector(selector);
         init();
@@ -64,7 +68,8 @@ public:
     }
 
     explicit Client(cxxtools::SelectorBase* selector, const cxxtools::net::AddrInfo& addrinfo)
-        : _peer(addrinfo)
+        : _peer(addrinfo),
+          _autoSync(selector == nullptr)
     {
         setSelector(selector);
         init();
