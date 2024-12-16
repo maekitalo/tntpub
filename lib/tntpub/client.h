@@ -115,6 +115,8 @@ public:
 
     void autoSync(bool sw)  { _autoSync = sw; if (_autoSync) flush(); }
     bool autoSync() const   { return _autoSync; }
+    unsigned wavail() const { return _outputBuffer.size() + _outputBufferNext.size(); }
+    unsigned ravail() const { return _inputBuffer.size(); }
 
     // returns the last received data message
     const DataMessage& getMessage()
