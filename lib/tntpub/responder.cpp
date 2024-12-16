@@ -45,6 +45,25 @@ void Responder::subscribeMessageReceived(const DataMessage& subscribeMessage)
     subscribe(subscribeMessage);
 }
 
+void Responder::unsubscribeMessageReceived(const DataMessage& unsubscribeMessage)
+{
+    log_info("unsubscribe topic \"" << unsubscribeMessage.topic() << '"');
+
+    for (auto it = _subscriptions.begin(); it != _subscriptions.end(); ++it)
+    {
+        if (it->equals(unsubscribeMessage.topic()))
+        {
+            _subscriptions.erase(it);
+            break;
+        }
+    }
+}
+
+void Responder::systemMessageReceived(const DataMessage& systemMessage)
+{
+    return;
+}
+
 void Responder::subscribe(const DataMessage& subscribeMessage)
 {
     log_info("subscribe topic \"" << subscribeMessage.topic() << '"');
@@ -85,16 +104,11 @@ void Responder::onInput(cxxtools::net::BufferedSocket&)
             }
             else if (dataMessage.isUnsubscribeMessage())
             {
-                log_info("unsubscribe topic \"" << dataMessage.topic() << '"');
-
-                for (auto it = _subscriptions.begin(); it != _subscriptions.end(); ++it)
-                {
-                    if (it->equals(dataMessage.topic()))
-                    {
-                        _subscriptions.erase(it);
-                        break;
-                    }
-                }
+                unsubscribeMessageReceived(dataMessage);
+            }
+            else if (dataMessage.isSystemMessage())
+            {
+                systemMessageReceived(dataMessage);
             }
             else
             {

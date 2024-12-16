@@ -52,6 +52,8 @@ protected:
     virtual ~Responder();
 
     virtual void subscribeMessageReceived(const DataMessage& subscribeMessage);
+    virtual void unsubscribeMessageReceived(const DataMessage& unsubscribeMessage);
+    virtual void systemMessageReceived(const DataMessage& systemMessage);
 
 public:
     explicit Responder(Server& pubSubServer);
