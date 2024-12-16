@@ -14,7 +14,7 @@ public:
     {
         Null = ' ',
         Full = 'F',
-        Praefix = 'P',
+        Prefix = 'P',
         Regex = 'R'
     };
 

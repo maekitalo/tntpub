@@ -35,16 +35,16 @@ bool FullTopic::match(const std::string& topic) const
     return topic == data();
 }
 
-class PraefixTopic : public Subscription::Impl
+class PrefixTopic : public Subscription::Impl
 {
 public:
-    explicit PraefixTopic(const std::string& praefix)
-        : Impl(praefix)
+    explicit PrefixTopic(const std::string& prefix)
+        : Impl(prefix)
         { }
     bool match(const std::string& topic) const override;
 };
 
-bool PraefixTopic::match(const std::string& topic) const
+bool PrefixTopic::match(const std::string& topic) const
 {
     return topic.compare(0, data().size(), data()) == 0;
 }
@@ -73,7 +73,7 @@ Subscription::Subscription(const std::string& topic, Type type)
     switch (type)
     {
         case Type::Full: _impl = new FullTopic(topic); break;
-        case Type::Praefix: _impl = new PraefixTopic(topic); break;
+        case Type::Prefix: _impl = new PrefixTopic(topic); break;
         case Type::Regex: _impl = new RegexTopic(topic); break;
     }
 }

@@ -20,7 +20,7 @@ DataMessage DataMessage::subscribe(const std::string& topic, Subscription::Type 
 {
     return DataMessage(
             topic,
-            type == Subscription::Type::Praefix ? Type::SubscribePraefix :
+            type == Subscription::Type::Prefix ? Type::SubscribePrefix :
             type == Subscription::Type::Regex   ? Type::SubscribeRegex   :
                                                   Type::SubscribeFull,
             data);
@@ -33,7 +33,7 @@ DataMessage DataMessage::unsubscribe(const std::string& topic, Subscription::Typ
         data = static_cast<char>(type);
     return DataMessage(
             topic,
-            type == Subscription::Type::Praefix ? Type::UnsubscribePraefix :
+            type == Subscription::Type::Prefix ? Type::UnsubscribePrefix :
             type == Subscription::Type::Regex   ? Type::UnsubscribeRegex   :
                                                   Type::UnsubscribeFull,
             std::string());

@@ -9,12 +9,12 @@ public:
         : cxxtools::unit::TestSuite("subscription")
     {
         registerMethod("full", *this, &SubscriptionTest::full);
-        registerMethod("praefix", *this, &SubscriptionTest::praefix);
+        registerMethod("prefix", *this, &SubscriptionTest::prefix);
         registerMethod("regex", *this, &SubscriptionTest::regex);
     }
 
     void full();
-    void praefix();
+    void prefix();
     void regex();
 };
 
@@ -29,9 +29,9 @@ void SubscriptionTest::full()
     CXXTOOLS_UNIT_ASSERT(!subscription.match("1foo"));
 }
 
-void SubscriptionTest::praefix()
+void SubscriptionTest::prefix()
 {
-    tntpub::Subscription subscription("foo", tntpub::Subscription::Type::Praefix);
+    tntpub::Subscription subscription("foo", tntpub::Subscription::Type::Prefix);
 
     CXXTOOLS_UNIT_ASSERT(subscription.match("foo"));
     CXXTOOLS_UNIT_ASSERT(subscription.match("foo1"));

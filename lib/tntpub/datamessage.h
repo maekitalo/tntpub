@@ -31,10 +31,10 @@ public:
     enum class Type : char {
         Null = ' ',
         SubscribeFull = 'F',
-        SubscribePraefix = 'P',
+        SubscribePrefix = 'P',
         SubscribeRegex = 'X',
         UnsubscribeFull = 'f',
-        UnsubscribePraefix = 'p',
+        UnsubscribePrefix = 'p',
         UnsubscribeRegex = 'x',
         Data = 'D',
         PlainData = 'R',
@@ -143,9 +143,9 @@ public:
         cxxtools::SerializationInfo si;
         si <<= obj;
         return DataMessage(topic,
-            type == Subscription::Type::Praefix ? Type::SubscribePraefix :
-            type == Subscription::Type::Regex   ? Type::SubscribeRegex   :
-                                                  Type::SubscribeFull,
+            type == Subscription::Type::Prefix ? Type::SubscribePrefix :
+            type == Subscription::Type::Regex  ? Type::SubscribeRegex   :
+                                                 Type::SubscribeFull,
             si);
     }
 
@@ -187,9 +187,9 @@ public:
     bool isDataMessage() const
         { return _type == Type::Data || _type == Type::PlainData; }
     bool isSubscribeMessage() const
-        { return _type == Type::SubscribeFull || _type == Type::SubscribePraefix || _type == Type::SubscribeRegex; }
+        { return _type == Type::SubscribeFull || _type == Type::SubscribePrefix || _type == Type::SubscribeRegex; }
     bool isUnsubscribeMessage() const
-        { return _type == Type::UnsubscribeFull || _type == Type::UnsubscribePraefix || _type == Type::UnsubscribeRegex; }
+        { return _type == Type::UnsubscribeFull || _type == Type::UnsubscribePrefix || _type == Type::UnsubscribeRegex; }
     bool isSystemMessage() const
         { return _type == Type::System; }
 
