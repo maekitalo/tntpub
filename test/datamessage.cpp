@@ -99,7 +99,7 @@ void DataMessageTest::serialize()
     });
 
     CXXTOOLS_UNIT_ASSERT(messageProcessed);
-    CXXTOOLS_UNIT_ASSERT_EQUALS(deserializer.in_avail(), 0);
+    CXXTOOLS_UNIT_ASSERT_EQUALS(deserializer.in_avail(), 0u);
     CXXTOOLS_UNIT_ASSERT(v == result);
 }
 

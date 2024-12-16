@@ -16,7 +16,7 @@
 #include <exception>
 #include <iostream>
 
-log_define("tntpub.readerBenchmarker")
+//log_define("tntpub.readerBenchmarker")
 
 cxxtools::EventLoop loop;
 cxxtools::Timespan lastT;

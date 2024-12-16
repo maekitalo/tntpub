@@ -72,6 +72,7 @@ Subscription::Subscription(const std::string& topic, Type type)
 {
     switch (type)
     {
+        case Type::Null:
         case Type::Full: _impl = new FullTopic(topic); break;
         case Type::Prefix: _impl = new PrefixTopic(topic); break;
         case Type::Regex: _impl = new RegexTopic(topic); break;

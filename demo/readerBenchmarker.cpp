@@ -13,7 +13,7 @@
 #include <exception>
 #include <iostream>
 
-log_define("tntpub.readerBenchmarker")
+//log_define("tntpub.readerBenchmarker")
 
 int main(int argc, char* argv[])
 {
