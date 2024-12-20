@@ -93,57 +93,92 @@ DataMessage DataMessage::createFromBuffer(const char* data, unsigned size)
     DataMessage result;
 
     DataMessageDeserializer deserializer;
-    deserializer.addData(data, size);
 
-    if (!deserializer.processMessage([&result] (DataMessage& dm) {
-        result = std::move(dm);
-    }))
+    if (!deserializer.processMessage(
+                data,
+                size,
+                [&result] (DataMessage& dm) {
+                    result = std::move(dm);
+                }))
         throw std::runtime_error("failed to create data message from data");
 
     return result;
 }
 
-bool DataMessageDeserializer::processMessage(std::function<void(DataMessage&)> messageReceived)
+unsigned DataMessageDeserializer::processMessage(const char* buffer, unsigned bufsize, std::function<void(DataMessage&)> messageReceived)
 {
-    log_debug("process message; " << _inputData.size() << " bytes available");
-    if (_inputData.size() < sizeof(DataMessage::Header))
+    log_debug("process message; " << bufsize << " bytes available");
+
+    if (bufsize < sizeof(DataMessage::Header))
     {
-        log_debug("message incomplete - size: " << _inputData.size() << " expected: " << sizeof(DataMessage::Header));
-        return false;
+        log_debug("message incomplete - size: " << bufsize << " expected: " << sizeof(DataMessage::Header));
+        return 0;
     }
 
-    const DataMessage::Header& header = reinterpret_cast<const DataMessage::Header&>(*_inputData.data());
+    const DataMessage::Header& header = reinterpret_cast<const DataMessage::Header&>(*buffer);
     log_debug("header detected; " << cxxtools::Json(header));
 
-    if (_inputData.size() < header.messageLength())
+    if (bufsize < header.messageLength())
     {
-        log_debug("message data incomplete - size: " << _inputData.size() << " expected: " << header.messageLength());
-        return false;
+        log_debug("message data incomplete - size: " << bufsize << " expected: " << header.messageLength());
+        return 0;
     }
 
+    unsigned remaining = bufsize;
+
     DataMessage dataMessage(
-        std::string(_inputData.data() + header.topicOffset(), header.topicLength()),
+        std::string(buffer + header.topicOffset(), header.topicLength()),
         header._type,
         header.createDateTime(),
-        std::string(_inputData.data() + header.dataOffset(), header.dataLength()));
+        std::string(buffer + header.dataOffset(), header.dataLength()));
 
     dataMessage._serial = header._serial;
-    _inputData.erase(0, header.messageLength());
+    buffer += header.messageLength();
+    remaining -= header.messageLength();
 
-    log_debug("message to topic <" << dataMessage.topic() << "> processed " << _inputData.size() << " left; capacity " << _inputData.capacity());
+    log_debug("message to topic <" << dataMessage.topic() << "> processed " << remaining << " left");
 
     messageReceived(dataMessage);
     message(dataMessage);
+
+    return bufsize - remaining;
+}
+
+bool DataMessageDeserializer::processMessage(std::function<void(DataMessage&)> messageReceived)
+{
+    unsigned count = processMessage(_inputData.data(), _inputData.size(), messageReceived);
+
+    if (count == 0)
+        return false;
+
+    _inputData.erase(_inputData.begin(), _inputData.begin() + count);
 
     return true;
 }
 
 unsigned DataMessageDeserializer::advance(const char* buffer, unsigned bufsize, std::function<void(DataMessage&)> messageReceived)
 {
-    _inputData.append(buffer, bufsize);
     unsigned count = 0;
-    while (processMessage(messageReceived))
-        ++count;
+
+    if (_inputData.empty())
+    {
+        while (true)
+        {
+            auto n = processMessage(buffer, bufsize, messageReceived);
+            if (n == 0)
+                break;
+            buffer += n;
+            bufsize -= n;
+        }
+    }
+
+    if (bufsize > 0)
+    {
+        _inputData.append(buffer, bufsize);
+        while (processMessage(messageReceived))
+            ++count;
+    }
+
     return count;
 }
 

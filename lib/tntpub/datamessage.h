@@ -231,6 +231,9 @@ class DataMessageDeserializer
 public:
     void addData(const char* buffer, unsigned bufsize)
         { _inputData.append(buffer, bufsize); }
+
+    // process message - returns number of bytes consumed
+    unsigned processMessage(const char* buffer, unsigned bufsize, std::function<void(DataMessage&)> messageReceived);
     bool processMessage(std::function<void(DataMessage&)> messageReceived);
     unsigned advance(const char* buffer, unsigned bufsize, std::function<void(DataMessage&)> messageReceived);
     unsigned in_avail() const   { return _inputData.size(); }
