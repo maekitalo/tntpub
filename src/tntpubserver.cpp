@@ -19,10 +19,12 @@ int main(int argc, char* argv[])
 
         cxxtools::Arg<std::string> ip(argc, argv, 'i');
         cxxtools::Arg<unsigned short> port(argc, argv, 'p', 9001);
+        cxxtools::Arg<unsigned> maxOBuf(argc, argv, 'B', 0);
 
         std::cout << "listening on " << *ip << ':' << *port << std::endl;
 
         cxxtools::EventLoop eventLoop;
+        tntpub::Server::maxOBuf(maxOBuf);
         tntpub::Server pubSubServer(eventLoop, ip, port);
         eventLoop.run();
     }

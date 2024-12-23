@@ -53,6 +53,12 @@ public:
     cxxtools::Signal<Responder&> clientConnected;
     cxxtools::Signal<Responder&> clientDisconnected;
     cxxtools::Signal<Responder&, const DataMessage&> clientSubscribed;
+
+    // get and set the maximum size of the output buffer.
+    // when the buffer is full, the signal Responder::outputBufferFull is sent and
+    // the connection closed when after that the output buffer is still full.
+    static unsigned maxOBuf();
+    static void maxOBuf(unsigned n);
 };
 
 }

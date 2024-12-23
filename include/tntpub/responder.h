@@ -41,6 +41,8 @@ class Responder : public cxxtools::Connectable
 
     std::vector<Subscription> _subscriptions;
 
+    static unsigned _maxOBuf;
+
     void onInput(cxxtools::net::BufferedSocket&);
     void onOutputBufferEmpty(cxxtools::net::BufferedSocket&);
     void onOutputError(cxxtools::net::BufferedSocket&, const std::exception&);
@@ -69,6 +71,13 @@ public:
 
     // signals that all messages has been sent to the peer
     cxxtools::Signal<Responder&> outputBufferEmpty;
+    cxxtools::Signal<Responder&> outputBufferFull;
+
+    // get and set the maximum size of the output buffer.
+    // when the buffer is full, the signal outputBufferFull is sent and
+    // the connection closed when after that the output buffer is still full.
+    static unsigned maxOBuf()       { return _maxOBuf; }
+    static void maxOBuf(unsigned n) { _maxOBuf = n; }
 };
 
 }

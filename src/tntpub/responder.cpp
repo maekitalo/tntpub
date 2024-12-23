@@ -20,6 +20,9 @@ namespace tntpub
 ////////////////////////////////////////////////////////////////////////
 // Responder
 //
+
+unsigned Responder::_maxOBuf = 0;
+
 Responder::Responder(Server& pubSubServer)
     : _pubSubServer(pubSubServer),
       _socket(*pubSubServer.selector(), pubSubServer._server)
@@ -128,7 +131,7 @@ void Responder::onInput(cxxtools::net::BufferedSocket&)
     }
     catch (const std::exception& e)
     {
-        log_warn("failed to read message: " << e.what());
+        log_warn(static_cast<void*>(this) << " failed to read message: " << e.what());
         if (!sentry.deleted())
             closeClient();
     }
@@ -156,6 +159,23 @@ void Responder::sendMessage(const DataMessage& dataMessage)
 {
     log_debug("send message to client");
     dataMessage.appendTo(_socket.outputBuffer());
+
+    if (_maxOBuf != 0)
+    {
+        if (_socket.outputSize() > _maxOBuf)
+        {
+            log_warn("output buffer size " << _socket.outputSize() << " > max (" << _maxOBuf << ')');
+            outputBufferFull(*this);
+        }
+
+        if (_socket.outputSize() > _maxOBuf)
+        {
+            log_warn("closing client");
+            closeClient();
+            return;
+        }
+    }
+
     _socket.beginWrite();
 }
 

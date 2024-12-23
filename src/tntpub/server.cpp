@@ -62,4 +62,14 @@ void Server::doSendMessage(const DataMessage& dataMessage)
     dispatchMessage(dataMessage);
 }
 
+unsigned Server::maxOBuf()
+{
+    return Responder::maxOBuf();
+}
+
+void Server::maxOBuf(unsigned n)
+{
+    Responder::maxOBuf(n);
+}
+
 }
