@@ -17,4 +17,4 @@ pubGenT_SOURCES = \
 	pubGenT.cpp
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
-LDADD = $(top_builddir)/lib/libtntpub.la -lcxxtools
+LDADD = $(top_builddir)/src/libtntpub.la -lcxxtools

@@ -15,6 +15,6 @@ alltests_LDFLAGS = -lcxxtools -lcxxtools-bin -lcxxtools-unit
 tntpubReadBench_SOURCES = tntpubReadBench.cpp
 tntpubWriteBench_SOURCES = tntpubWriteBench.cpp
 
-LDADD = $(top_builddir)/lib/libtntpub.la
+LDADD = $(top_builddir)/src/libtntpub.la
 
 AM_LDFLAGS = -lcxxtools

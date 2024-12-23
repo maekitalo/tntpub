@@ -15,4 +15,4 @@ tntpubAsyncReadObject_SOURCES = tntpubAsyncReadObject.cpp
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS = -lcxxtools
-LDADD = $(top_builddir)/lib/libtntpub.la
+LDADD = $(top_builddir)/src/libtntpub.la
