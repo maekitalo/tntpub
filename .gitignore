@@ -48,6 +48,8 @@ demo/tntpubSendObject
 demo/tntpubAsyncRead
 demo/tntpubAsyncReadObject
 test/alltests
+test/tntpubReadBench
+test/tntpubWriteBench
 xsimu/pubCopy
 xsimu/pubDelay
 xsimu/pubGen
