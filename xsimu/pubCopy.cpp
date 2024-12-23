@@ -10,7 +10,7 @@
 
 log_define("tntpub.pubDelay")
 
-class PubDelay : public cxxtools::Connectable
+class PubCopy : public cxxtools::Connectable
 {
     cxxtools::EventLoop _eventLoop;
     tntpub::Client _client;
@@ -27,7 +27,7 @@ class PubDelay : public cxxtools::Connectable
     void onTimeout();
 
 public:
-    PubDelay(const std::string& ip, unsigned short port, const std::string& topicIn, const std::string& topicOut)
+    PubCopy(const std::string& ip, unsigned short port, const std::string& topicIn, const std::string& topicOut)
         : _client(&_eventLoop),
           _timer(&_eventLoop),
           _topicIn(topicIn),
@@ -36,10 +36,10 @@ public:
     {
         _client.beginConnect(ip, port);
 
-        cxxtools::connect(_client.connected, *this, &PubDelay::onConnected);
-        cxxtools::connect(_client.closed, *this, &PubDelay::onClosed);
-        cxxtools::connect(_client.messageReceived, *this, &PubDelay::onMessageReceived);
-        cxxtools::connect(_timer.timeout, *this, &PubDelay::onTimeout);
+        cxxtools::connect(_client.connected, *this, &PubCopy::onConnected);
+        cxxtools::connect(_client.closed, *this, &PubCopy::onClosed);
+        cxxtools::connect(_client.messageReceived, *this, &PubCopy::onMessageReceived);
+        cxxtools::connect(_timer.timeout, *this, &PubCopy::onTimeout);
     }
 
     void run()
@@ -49,19 +49,19 @@ public:
     }
 };
 
-void PubDelay::onConnected(tntpub::Client&)
+void PubCopy::onConnected(tntpub::Client&)
 {
     _client.endConnect();
     _client.subscribe(_topicIn);
 }
 
-void PubDelay::onClosed(tntpub::Client&)
+void PubCopy::onClosed(tntpub::Client&)
 {
     onTimeout();
     _eventLoop.exit();
 }
 
-void PubDelay::onMessageReceived(const tntpub::DataMessage& dm)
+void PubCopy::onMessageReceived(const tntpub::DataMessage& dm)
 {
     auto createDateTime = dm.createDateTime();
     _sumDelay += cxxtools::Clock::getSystemTime() - createDateTime;
@@ -71,7 +71,7 @@ void PubDelay::onMessageReceived(const tntpub::DataMessage& dm)
     ++_count;
 }
 
-void PubDelay::onTimeout()
+void PubCopy::onTimeout()
 {
     log_debug("timeout - count " << _count);
 
@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
             return -1;
         }
 
-        PubDelay pubDelay(ip, port, argv[1], argv[2]);
+        PubCopy pubDelay(ip, port, argv[1], argv[2]);
         pubDelay.run();
     }
     catch (const std::exception& e)

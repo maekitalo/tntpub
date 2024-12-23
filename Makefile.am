@@ -1,5 +1,5 @@
 ACLOCAL_AMFLAGS = -I m4
-SUBDIRS = lib server demo test xsimu
+SUBDIRS = src include demo test xsimu
 
 pkgconfigdir = $(libdir)/pkgconfig/
 

@@ -39,20 +39,14 @@ Makefile
 
 *~
 .dirstamp
-server/tntpubserver
-server/tntpubsender
+src/tntpubserver
 demo/alarmClient
-demo/alarmServer
-demo/exampleAsyncReader
-demo/exampleAsyncSender
-demo/exampleReader
-demo/exampleSender
-demo/readerBenchmarker
-demo/readerBenchmarkerAsync
-demo/recoverQueue
-demo/recoverServer
-demo/plainMessageSender
-demo/plainMessageReceiver
+demo/tntpubRead
+demo/tntpubReadObject
+demo/tntpubSend
+demo/tntpubSendObject
+demo/tntpubAsyncRead
+demo/tntpubAsyncReadObject
 test/alltests
 xsimu/pubCopy
 xsimu/pubDelay

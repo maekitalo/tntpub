@@ -3,7 +3,7 @@
  *
  */
 
-#include "datamessage.h"
+#include <tntpub/datamessage.h>
 #include <sstream>
 #include <cxxtools/bin/serializer.h>
 #include <cxxtools/bin/deserializer.h>

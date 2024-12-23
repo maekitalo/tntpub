@@ -21,8 +21,8 @@ AX_CHECK_COMPILE_FLAG([-pedantic], [CPPFLAGS="$CPPFLAGS -pedantic"])
 
 AC_CONFIG_FILES([
     Makefile
-    lib/Makefile
-    server/Makefile
+    src/Makefile
+    include/Makefile
     demo/Makefile
     test/Makefile
     xsimu/Makefile
