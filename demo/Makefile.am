@@ -6,6 +6,9 @@ noinst_PROGRAMS = \
 	tntpubAsyncRead \
 	tntpubAsyncReadObject
 
+noinst_HEADERS = \
+	mymessage.h
+
 tntpubRead_SOURCES = tntpubRead.cpp
 tntpubReadObject_SOURCES = tntpubReadObject.cpp
 tntpubSend_SOURCES = tntpubSend.cpp
