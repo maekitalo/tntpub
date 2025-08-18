@@ -31,7 +31,7 @@ void Client::beginRead()
     _peer.beginRead(_inputBuffer.data(), _inputBuffer.size());
 }
 
-Client& Client::subscribe(const std::string& topic, Subscription::Type type, const std::string& data)
+Client& Client::subscribe(const Topic& topic, Subscription::Type type, const std::string& data)
 {
     doSendMessage(DataMessage::subscribe(topic, type, data));
     return *this;
@@ -177,7 +177,7 @@ void Client::onInput(cxxtools::IODevice&)
             _dataMessage = std::move(dataMessage);
         }))
         {
-            log_debug("got message to topic <" << _dataMessage.topic() << '>');
+            log_debug("got message to topic <" << _dataMessage.topic().topic() << '>');
             log_finer_if(_dataMessage.type() == DataMessage::Type::Data, cxxtools::Json(_dataMessage.si()).beautify(true));
             dispatchMessage(_dataMessage);
         }

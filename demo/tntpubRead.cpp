@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
         tntpub::Client client(ip, port);
 
         for (int a = 1; a < argc; ++a)
-            client.subscribe(argv[a]);
+            client.subscribe(tntpub::Topic(argv[a]));
 
         while (true)
         {

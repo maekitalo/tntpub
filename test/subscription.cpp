@@ -1,4 +1,5 @@
 #include <tntpub/subscription.h>
+#include <tntpub/topic.h>
 #include <cxxtools/unit/testsuite.h>
 #include <cxxtools/unit/registertest.h>
 
@@ -11,40 +12,57 @@ public:
         registerMethod("full", *this, &SubscriptionTest::full);
         registerMethod("prefix", *this, &SubscriptionTest::prefix);
         registerMethod("regex", *this, &SubscriptionTest::regex);
+        registerMethod("subtopic", *this, &SubscriptionTest::subtopic);
     }
 
     void full();
     void prefix();
     void regex();
+    void subtopic();
 };
 
 cxxtools::unit::RegisterTest<SubscriptionTest> register_SubscriptionTest;
 
 void SubscriptionTest::full()
 {
-    tntpub::Subscription subscription("foo");
+    tntpub::Subscription subscription(tntpub::Topic("foo"));
 
-    CXXTOOLS_UNIT_ASSERT(subscription.match("foo"));
-    CXXTOOLS_UNIT_ASSERT(!subscription.match("foo1"));
-    CXXTOOLS_UNIT_ASSERT(!subscription.match("1foo"));
+    CXXTOOLS_UNIT_ASSERT(subscription.match(tntpub::Topic("foo")));
+    CXXTOOLS_UNIT_ASSERT(!subscription.match(tntpub::Topic("foo1")));
+    CXXTOOLS_UNIT_ASSERT(!subscription.match(tntpub::Topic("1foo")));
 }
 
 void SubscriptionTest::prefix()
 {
-    tntpub::Subscription subscription("foo", tntpub::Subscription::Type::Prefix);
+    tntpub::Subscription subscription(tntpub::Topic("foo"), tntpub::Subscription::Type::Prefix);
 
-    CXXTOOLS_UNIT_ASSERT(subscription.match("foo"));
-    CXXTOOLS_UNIT_ASSERT(subscription.match("foo1"));
-    CXXTOOLS_UNIT_ASSERT(!subscription.match("1foo"));
+    CXXTOOLS_UNIT_ASSERT(subscription.match(tntpub::Topic("foo")));
+    CXXTOOLS_UNIT_ASSERT(subscription.match(tntpub::Topic("foo1")));
+    CXXTOOLS_UNIT_ASSERT(!subscription.match(tntpub::Topic("1foo")));
 }
 
 void SubscriptionTest::regex()
 {
-    tntpub::Subscription subscription("o[12]", tntpub::Subscription::Type::Regex);
+    tntpub::Subscription subscription(tntpub::Topic("o[12]"), tntpub::Subscription::Type::Regex);
 
-    CXXTOOLS_UNIT_ASSERT(!subscription.match("foo"));
-    CXXTOOLS_UNIT_ASSERT(subscription.match("foo1"));
-    CXXTOOLS_UNIT_ASSERT(subscription.match("foo2bar"));
-    CXXTOOLS_UNIT_ASSERT(!subscription.match("1foo"));
+    CXXTOOLS_UNIT_ASSERT(!subscription.match(tntpub::Topic("foo")));
+    CXXTOOLS_UNIT_ASSERT(subscription.match(tntpub::Topic("foo1")));
+    CXXTOOLS_UNIT_ASSERT(subscription.match(tntpub::Topic("foo2bar")));
+    CXXTOOLS_UNIT_ASSERT(!subscription.match(tntpub::Topic("1foo")));
 }
 
+void SubscriptionTest::subtopic()
+{
+    tntpub::Subscription foo("foo", "sub1");
+    tntpub::Subscription allfoo(tntpub::Topic("foo"));
+
+    CXXTOOLS_UNIT_ASSERT(!foo.match(tntpub::Topic("foo")));
+    CXXTOOLS_UNIT_ASSERT(foo.match(tntpub::Topic("foo", "sub1")));
+    CXXTOOLS_UNIT_ASSERT(!foo.match(tntpub::Topic("foo1", "sub1")));
+    CXXTOOLS_UNIT_ASSERT(!foo.match(tntpub::Topic("foo", "sub2")));
+
+    CXXTOOLS_UNIT_ASSERT(allfoo.match(tntpub::Topic("foo")));
+    CXXTOOLS_UNIT_ASSERT(allfoo.match(tntpub::Topic("foo", "sub1")));
+    CXXTOOLS_UNIT_ASSERT(!allfoo.match(tntpub::Topic("foo1", "sub1")));
+    CXXTOOLS_UNIT_ASSERT(allfoo.match(tntpub::Topic("foo", "sub2")));
+}

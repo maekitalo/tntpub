@@ -4,7 +4,7 @@ LT_INIT
 
 AC_CONFIG_MACRO_DIR([m4])
 
-abi_current=1
+abi_current=2
 abi_revision=0
 abi_age=0
 sonumber=${abi_current}:${abi_revision}:${abi_age}

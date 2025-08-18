@@ -7,6 +7,7 @@
 #define TNTPUB_DATAMESSAGE_H
 
 #include <tntpub/subscription.h>
+#include <tntpub/topic.h>
 #include <cxxtools/clock.h>
 #include <cxxtools/datetime.h>
 #include <cxxtools/serializationinfo.h>
@@ -48,12 +49,15 @@ public:
         uint64_t _createTimeUSecs;
         uint64_t _serial;
         uint16_t _topicLength;
+        uint16_t _subtopicLength;
         Type _type;
 
         uint32_t messageLength() const      { return _messageLength; }
         uint32_t topicOffset() const        { return sizeof(Header); }
         uint16_t topicLength() const        { return _topicLength; }
-        uint32_t dataOffset() const         { return topicOffset() + _topicLength; }
+        uint32_t subtopicOffset() const     { return topicOffset() + _topicLength; }
+        uint16_t subtopicLength() const     { return _subtopicLength; }
+        uint32_t dataOffset() const         { return subtopicOffset() + _subtopicLength; }
         uint32_t dataLength() const         { return _messageLength - dataOffset(); }
         cxxtools::UtcDateTime createDateTime() const
         {
@@ -67,7 +71,7 @@ public:
 
 private:
     Type _type = Type::Null;
-    std::string _topic;
+    Topic _topic;
     decltype(Header::_serial) _serial = 0;
     cxxtools::UtcDateTime _createDateTime;
     std::string _data;
@@ -76,21 +80,21 @@ private:
     void setData(const cxxtools::SerializationInfo& si);
     static decltype(_serial)  _lastSerial;
 
-    DataMessage(const std::string& topic, Type type, const cxxtools::UtcDateTime& createDateTime, const std::string& data)
+    DataMessage(const Topic& topic, Type type, const cxxtools::UtcDateTime& createDateTime, const std::string& data)
         : _type(type),
           _topic(topic),
           _createDateTime(createDateTime),
           _data(data)
         { }
 
-    DataMessage(const std::string& topic, Type type, const std::string& data)
+    DataMessage(const Topic& topic, Type type, const std::string& data)
         : _type(type),
           _topic(topic),
           _createDateTime(cxxtools::Clock::getSystemTime()),
           _data(data)
         { }
 
-    DataMessage(const std::string& topic, Type type, const cxxtools::SerializationInfo& data);
+    DataMessage(const Topic& topic, Type type, const cxxtools::SerializationInfo& data);
 
 public:
     DataMessage() = default;
@@ -125,7 +129,7 @@ public:
 #if __cplusplus >= 201402L
     [[deprecated("use DataMessage::create instead")]]
 #endif
-    DataMessage(const std::string& topic, const Obj& obj)
+    DataMessage(const Topic& topic, const Obj& obj)
         : _type(Type::Data),
           _serial(0),
           _topic(topic),
@@ -135,10 +139,10 @@ public:
         setData(_si);
     }
 
-    static DataMessage subscribe(const std::string& topic, Subscription::Type type = Subscription::Type::Full, const std::string& data = std::string());
+    static DataMessage subscribe(const Topic& topic, Subscription::Type type = Subscription::Type::Full, const std::string& data = std::string());
 
     template <typename T>
-    static DataMessage subscribeWithObject(const std::string& topic, const T& obj, Subscription::Type type = Subscription::Type::Full)
+    static DataMessage subscribeWithObject(const Topic& topic, const T& obj, Subscription::Type type = Subscription::Type::Full)
     {
         cxxtools::SerializationInfo si;
         si <<= obj;
@@ -149,13 +153,13 @@ public:
             si);
     }
 
-    static DataMessage unsubscribe(const std::string& topic, Subscription::Type type = Subscription::Type::Null);
+    static DataMessage unsubscribe(const Topic& topic, Subscription::Type type = Subscription::Type::Null);
 
-    static DataMessage createPlain(const std::string& topic, const std::string& data)
+    static DataMessage createPlain(const Topic& topic, const std::string& data)
     { return DataMessage(topic, Type::PlainData, data); }
 
     template <typename T>
-    static DataMessage create(const std::string& topic, const T& obj)
+    static DataMessage create(const Topic& topic, const T& obj)
     {
         cxxtools::SerializationInfo si;
         si <<= obj;
@@ -163,7 +167,7 @@ public:
     }
 
     template <typename T>
-    static DataMessage createSystem(const std::string& topic, const T& obj)
+    static DataMessage createSystem(const Topic& topic, const T& obj)
     {
         cxxtools::SerializationInfo si;
         si <<= obj;
@@ -171,10 +175,10 @@ public:
     }
 
     /// Returns the topic where the message is sent through.
-    const std::string& topic() const
+    const Topic& topic() const
         { return _topic; }
     /// Sets the topic of the message.
-    void topic(const std::string& topic)
+    void topic(const Topic& topic)
         { _topic = topic; }
 
     /// Returns the type

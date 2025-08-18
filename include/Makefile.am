@@ -7,4 +7,5 @@ nobase_include_HEADERS = \
 	tntpub/responder.h \
 	tntpub/server.h \
 	tntpub/serviceprocedure.h \
-	tntpub/subscription.h
+	tntpub/subscription.h \
+	tntpub/topic.h

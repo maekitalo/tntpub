@@ -24,6 +24,7 @@ namespace tntpub
 {
 
 class Server;
+class Topic;
 
 ////////////////////////////////////////////////////////////////////////
 // Responder
@@ -61,9 +62,9 @@ public:
     explicit Responder(Server& pubSubServer);
 
     void subscribe(const DataMessage& subscribeMessage);
-    void subscribe(const std::string& topic, Subscription::Type type = Subscription::Type::Full);
+    void subscribe(const Topic& topic, Subscription::Type type = Subscription::Type::Full);
 
-    bool isSubscribed(const std::string& topic);
+    bool isSubscribed(const Topic& topic);
     const std::vector<Subscription>& subscriptions() const  { return _subscriptions; }
 
     void onDataMessageReceived(const DataMessage&);

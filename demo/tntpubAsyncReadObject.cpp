@@ -45,7 +45,7 @@ AsyncReader::AsyncReader(cxxtools::EventLoop& eventLoop, const std::string& ip, 
 
     // register callback methods
     // we want to call the method when a object of type "MyMessage" is sent to the topic "foobar"
-    _client.registerMethod("foobar", *this, &AsyncReader::onMyMessageReceived);
+    _client.registerMethod(tntpub::Topic("foobar"), *this, &AsyncReader::onMyMessageReceived);
 
     // initiate connection
     _client.beginConnect(ip, port);

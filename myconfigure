@@ -1,0 +1,22 @@
+#!/bin/bash
+
+UTILS=$HOME/utils
+if [[ $1 == -d ]]
+then
+	CXXFLAGS="-O0 -g"
+else
+	CXXFLAGS="-O2 -g"
+fi
+CPPFLAGS="-I$UTILS/include -fdiagnostics-color=always"
+LDFLAGS="-L$UTILS/lib"
+
+if [[ ! -f configure && -f configure.ac ]]
+then
+    if autoconf --version|grep -q 'autoconf.* 2\.6'
+    then
+        ln -s README.md README
+    fi
+	autoreconf -i
+fi
+
+./configure --prefix=$UTILS CXXFLAGS="$CXXFLAGS" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"

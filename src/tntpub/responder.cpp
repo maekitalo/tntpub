@@ -6,10 +6,12 @@
 #include <tntpub/responder.h>
 #include <tntpub/server.h>
 #include <tntpub/datamessage.h>
+#include <tntpub/topic.h>
 
 #include <cxxtools/destructionsentry.h>
 #include <cxxtools/bin/bin.h>
 #include <cxxtools/json.h>
+#include <cxxtools/hexdump.h>
 
 #include <cxxtools/log.h>
 
@@ -54,7 +56,7 @@ void Responder::unsubscribeMessageReceived(const DataMessage& unsubscribeMessage
 
     for (auto it = _subscriptions.begin(); it != _subscriptions.end(); ++it)
     {
-        if (it->equals(unsubscribeMessage.topic()))
+        if (it->equals(unsubscribeMessage.topic().topic()))
         {
             _subscriptions.erase(it);
             break;
@@ -75,7 +77,7 @@ void Responder::subscribe(const DataMessage& subscribeMessage)
     _pubSubServer.clientSubscribed(*this, subscribeMessage);
 }
 
-void Responder::subscribe(const std::string& topic, Subscription::Type type)
+void Responder::subscribe(const Topic& topic, Subscription::Type type)
 {
     subscribe(DataMessage::subscribe(topic, type));
 }
@@ -91,7 +93,8 @@ void Responder::onInput(cxxtools::net::BufferedSocket&)
         _socket.endRead();
 
         auto& input = _socket.inputBuffer();
-        log_debug(input.size() << " bytes available");
+        log_debug(input.size() << " Bytes available");
+        log_finer(cxxtools::hexDump(input));
 
         _deserializer.advance(input.data(), input.size(), [this, &sentry] (DataMessage& dataMessage) {
             log_debug("process data message " << cxxtools::Json(dataMessage));
@@ -137,7 +140,7 @@ void Responder::onInput(cxxtools::net::BufferedSocket&)
     }
 }
 
-bool Responder::isSubscribed(const std::string& topic)
+bool Responder::isSubscribed(const Topic& topic)
 {
     log_debug(static_cast<const void*>(this) << " check topic \"" << topic << '"');
 

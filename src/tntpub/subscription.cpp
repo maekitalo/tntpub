@@ -1,4 +1,5 @@
 #include <tntpub/subscription.h>
+#include <tntpub/topic.h>
 #include <cxxtools/regex.h>
 
 namespace tntpub
@@ -6,16 +7,16 @@ namespace tntpub
 
 class Subscription::Impl
 {
-    std::string _data;
+    Topic _data;
 public:
-    explicit Impl(const std::string& data)
+    explicit Impl(const Topic& data)
         : _data(data)
         { }
 
     virtual ~Impl() = default;
-    virtual bool match(const std::string& topic) const = 0;
+    virtual bool match(const Topic& topic) const = 0;
 
-    const std::string& data() const    { return  _data; }
+    const Topic& data() const    { return  _data; }
 };
 
 namespace
@@ -24,50 +25,53 @@ namespace
 class FullTopic : public Subscription::Impl
 {
 public:
-    explicit FullTopic(const std::string& topic)
+    explicit FullTopic(const Topic& topic)
         : Impl(topic)
         { }
-    bool match(const std::string& topic) const override;
+    bool match(const Topic& topic) const override;
 };
 
-bool FullTopic::match(const std::string& topic) const
+bool FullTopic::match(const Topic& topic) const
 {
-    return topic == data();
+    return topic.topic() == data().topic()
+        && (data().subtopic().empty() || data().subtopic() == topic.subtopic());
 }
 
 class PrefixTopic : public Subscription::Impl
 {
 public:
-    explicit PrefixTopic(const std::string& prefix)
+    explicit PrefixTopic(const Topic& prefix)
         : Impl(prefix)
         { }
-    bool match(const std::string& topic) const override;
+    bool match(const Topic& topic) const override;
 };
 
-bool PrefixTopic::match(const std::string& topic) const
+bool PrefixTopic::match(const Topic& topic) const
 {
-    return topic.compare(0, data().size(), data()) == 0;
+    return topic.topic().compare(0, data().topic().size(), data().topic()) == 0
+        && (data().subtopic().empty() || data().subtopic() == topic.subtopic());
 }
 
 class RegexTopic : public Subscription::Impl
 {
     cxxtools::Regex _regex;
 public:
-    explicit RegexTopic(const std::string& topic)
+    explicit RegexTopic(const Topic& topic)
         : Impl(topic),
-          _regex(topic)
+          _regex(topic.topic())
         { }
-    bool match(const std::string& topic) const override;
+    bool match(const Topic& topic) const override;
 };
 
-bool RegexTopic::match(const std::string& topic) const
+bool RegexTopic::match(const Topic& topic) const
 {
-    return _regex.match(topic);
+    return _regex.match(topic.topic())
+        && (data().subtopic().empty() || data().subtopic() == topic.subtopic());
 }
 
 }
 
-Subscription::Subscription(const std::string& topic, Type type)
+Subscription::Subscription(const Topic& topic, Type type)
     : _impl(nullptr)
 {
     switch (type)
@@ -79,24 +83,32 @@ Subscription::Subscription(const std::string& topic, Type type)
     }
 }
 
+Subscription::Subscription(const std::string& topic, Type type)
+    : Subscription(Topic(topic), type)
+{ }
+
+Subscription::Subscription(const std::string& topic, const std::string& subtopic, Type type)
+    : Subscription(Topic(topic, subtopic), type)
+{ }
+
 Subscription::~Subscription()
 {
     delete _impl;
 }
 
-bool Subscription::match(const std::string& topic) const
+bool Subscription::match(const Topic& topic) const
 {
     if (!_impl)
         return true;
     return _impl->match(topic);
 }
 
-bool Subscription::equals(const std::string& topic) const
+bool Subscription::equals(const Topic& topic) const
 {
     if (_impl)
-        return _impl->data() == topic;
+        return _impl->data().topic() == topic.topic();
     else
-        return topic.empty();
+        return topic.topic().empty();
 }
 
 }

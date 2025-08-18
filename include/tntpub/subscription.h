@@ -5,6 +5,8 @@
 
 namespace tntpub
 {
+class Topic;
+
 class Subscription
 {
 public:
@@ -35,17 +37,15 @@ public:
         src._impl = nullptr;
     }
 
+    Subscription(const Topic& topic, Type type = Type::Full);
     Subscription(const std::string& topic, Type type = Type::Full);
-    Subscription(const char* topic, Type type = Type::Full)
-        : Subscription(std::string(topic), type)
-        { }
-
+    Subscription(const std::string& topic, const std::string& subtopic, Type type = Type::Full);
     Subscription(const Subscription&) = delete;
     Subscription& operator=(const Subscription&) = delete;
     ~Subscription();
 
-    bool match(const std::string& topic) const;
-    bool equals(const std::string& topic) const;
+    bool match(const Topic& topic) const;
+    bool equals(const Topic& topic) const;
 };
 
 }
