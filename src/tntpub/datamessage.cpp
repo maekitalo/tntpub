@@ -8,6 +8,7 @@
 #include <cxxtools/bin/deserializer.h>
 #include <cxxtools/log.h>
 #include <cxxtools/json.h>
+#include <cxxtools/hexdump.h>
 #include <sstream>
 #include <iostream>
 
@@ -22,8 +23,8 @@ DataMessage DataMessage::subscribe(const Topic& topic, Subscription::Type type, 
     return DataMessage(
             topic,
             type == Subscription::Type::Prefix ? Type::SubscribePrefix :
-            type == Subscription::Type::Regex   ? Type::SubscribeRegex   :
-                                                  Type::SubscribeFull,
+            type == Subscription::Type::Regex  ? Type::SubscribeRegex   :
+                                                 Type::SubscribeFull,
             data);
 }
 
@@ -35,8 +36,8 @@ DataMessage DataMessage::unsubscribe(const Topic& topic, Subscription::Type type
     return DataMessage(
             topic,
             type == Subscription::Type::Prefix ? Type::UnsubscribePrefix :
-            type == Subscription::Type::Regex   ? Type::UnsubscribeRegex   :
-                                                  Type::UnsubscribeFull,
+            type == Subscription::Type::Regex  ? Type::UnsubscribeRegex   :
+                                                 Type::UnsubscribeFull,
             std::string());
 }
 
@@ -76,6 +77,7 @@ void DataMessage::appendTo(std::vector<char>& buffer) const
 
     Header& header = reinterpret_cast<Header&>(*ptr);
 
+    header._magic = Header::magic;
     header._messageLength = messageLength;
     header._createDateJulian = _createDateTime.date().julian();
     header._createTimeUSecs = _createDateTime.time().totalUSecs();
@@ -111,39 +113,75 @@ DataMessage DataMessage::createFromBuffer(const char* data, unsigned size)
 unsigned DataMessageDeserializer::processMessage(const char* buffer, unsigned bufsize, std::function<void(DataMessage&)> messageReceived)
 {
     log_debug("process message; " << bufsize << " bytes available");
+    log_finest(cxxtools::hexDump(buffer, bufsize));
 
-    if (bufsize < sizeof(DataMessage::Header))
+    if (bufsize < sizeof(DataMessage::Header1))
     {
         log_debug("message incomplete - size: " << bufsize << " expected: " << sizeof(DataMessage::Header));
         return 0;
     }
 
-    const DataMessage::Header& header = reinterpret_cast<const DataMessage::Header&>(*buffer);
-    log_debug("header detected; " << cxxtools::Json(header));
-
-    if (bufsize < header.messageLength())
-    {
-        log_debug("message data incomplete - size: " << bufsize << " expected: " << header.messageLength());
-        return 0;
-    }
-
     unsigned remaining = bufsize;
+    const auto& header = reinterpret_cast<const DataMessage::Header&>(*buffer);
 
-    DataMessage dataMessage(
-        Topic(std::string(buffer + header.topicOffset(), header.topicLength()),
-              std::string(buffer + header.subtopicOffset(), header.subtopicLength())),
-        header._type,
-        header.createDateTime(),
-        std::string(buffer + header.dataOffset(), header.dataLength()));
+    log_finer("header magic number " << header._magic);
+    if (header._magic == DataMessage::Header::magic)
+    {
+        if (bufsize < sizeof(DataMessage::Header))
+        {
+            log_debug("message incomplete - size: " << bufsize << " expected: " << sizeof(DataMessage::Header));
+            return 0;
+        }
 
-    dataMessage._serial = header._serial;
-    buffer += header.messageLength();
-    remaining -= header.messageLength();
+        if (bufsize < header.messageLength())
+        {
+            log_debug("message data incomplete - size: " << bufsize << " expected: " << header.messageLength());
+            return 0;
+        }
 
-    log_debug("message to topic <" << dataMessage.topic().topic() << "> processed " << remaining << " left");
+        DataMessage dataMessage(
+            Topic(std::string(buffer + header.topicOffset(), header.topicLength()),
+                  std::string(buffer + header.subtopicOffset(), header.subtopicLength())),
+            header._type,
+            header.createDateTime(),
+            std::string(buffer + header.dataOffset(), header.dataLength()));
 
-    messageReceived(dataMessage);
-    message(dataMessage);
+        dataMessage._serial = header._serial;
+        buffer += header.messageLength();
+        remaining -= header.messageLength();
+
+        log_debug("message to topic <" << dataMessage.topic().topic() << "> processed " << remaining << " left");
+
+        messageReceived(dataMessage);
+        message(dataMessage);
+    }
+    else
+    {
+        // old format
+        log_debug("old format detected");
+        const auto& header = reinterpret_cast<const DataMessage::Header1&>(*buffer);
+
+        if (bufsize < header.messageLength())
+        {
+            log_debug("message data incomplete - size: " << bufsize << " expected: " << header.messageLength());
+            return 0;
+        }
+
+        DataMessage dataMessage(
+            Topic(std::string(buffer + header.topicOffset(), header.topicLength())),
+            header._type,
+            header.createDateTime(),
+            std::string(buffer + header.dataOffset(), header.dataLength()));
+
+        dataMessage._serial = header._serial;
+        buffer += header.messageLength();
+        remaining -= header.messageLength();
+
+        log_debug("message to topic <" << dataMessage.topic().topic() << "> processed " << remaining << " left");
+
+        messageReceived(dataMessage);
+        message(dataMessage);
+    }
 
     return bufsize - remaining;
 }

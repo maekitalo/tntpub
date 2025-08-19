@@ -19,14 +19,14 @@ public:
         return *this;
     }
 
-    template <typename Obj> MessageSource& sendMessage(const std::string& topic, const Obj& obj)
+    template <typename Obj> MessageSource& sendMessage(const Topic& topic, const Obj& obj)
     {
         auto msg = DataMessage::create(topic, obj);
         doSendMessage(msg);
         return *this;
     }
 
-    MessageSource& sendPlainMessage(const std::string& topic, const std::string& data)
+    MessageSource& sendPlainMessage(const Topic& topic, const std::string& data)
     {
         auto msg = DataMessage::createPlain(topic, data);
         doSendMessage(msg);

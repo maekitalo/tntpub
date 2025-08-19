@@ -42,8 +42,35 @@ public:
         System = 'S'
     };
 
+    struct Header1
+    {
+        uint32_t _messageLength;
+        unsigned _createDateJulian;
+        uint64_t _createTimeUSecs;
+        uint64_t _serial;
+        uint16_t _topicLength;
+        Type _type;
+
+        uint32_t messageLength() const      { return _messageLength; }
+        uint32_t topicOffset() const        { return sizeof(Header); }
+        uint16_t topicLength() const        { return _topicLength; }
+        uint32_t dataOffset() const         { return topicOffset() + _topicLength; }
+        uint32_t dataLength() const         { return _messageLength - dataOffset(); }
+        cxxtools::UtcDateTime createDateTime() const
+        {
+            cxxtools::Date createDate;
+            cxxtools::Time createTime;
+            createDate.setJulian(_createDateJulian);
+            createTime.setTotalUSecs(_createTimeUSecs);
+            return cxxtools::UtcDateTime(createDate, createTime);
+        }
+    };
+
     struct Header
     {
+        static const uint32_t magic = 0x74707532;   // "tpu2"
+
+        uint32_t _magic = magic;
         uint32_t _messageLength;
         unsigned _createDateJulian;
         uint64_t _createTimeUSecs;
@@ -59,6 +86,7 @@ public:
         uint16_t subtopicLength() const     { return _subtopicLength; }
         uint32_t dataOffset() const         { return subtopicOffset() + _subtopicLength; }
         uint32_t dataLength() const         { return _messageLength - dataOffset(); }
+
         cxxtools::UtcDateTime createDateTime() const
         {
             cxxtools::Date createDate;
