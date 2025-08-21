@@ -39,9 +39,19 @@ public:
         _callbacks.emplace_back(std::move(topic), new ServiceFunction<A>(fn));
     }
 
+    template <typename A> void registerFunction(const char* topic, void (*fn)(A))
+    {
+        _callbacks.emplace_back(Topic(topic), new ServiceFunction<A>(fn));
+    }
+
     template <typename A, class C> void registerMethod(Subscription&& topic, C& obj, void (C::*method)(A))
     {
         _callbacks.emplace_back(std::move(topic), new ServiceMethod<A, C>(obj, method));
+    }
+
+    template <typename A, class C> void registerMethod(const char* topic, C& obj, void (C::*method)(A))
+    {
+        _callbacks.emplace_back(Topic(topic), new ServiceMethod<A, C>(obj, method));
     }
 
     template <typename A> void registerFunction(void (*fn)(A))
