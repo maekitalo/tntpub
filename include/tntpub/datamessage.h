@@ -122,7 +122,7 @@ private:
           _data(data)
         { }
 
-    DataMessage(const Topic& topic, Type type, const cxxtools::SerializationInfo& data);
+    DataMessage(const Topic& topic, Type type, cxxtools::SerializationInfo&& data);
 
 public:
     DataMessage() = default;
@@ -178,7 +178,7 @@ public:
             type == Subscription::Type::Prefix ? Type::SubscribePrefix :
             type == Subscription::Type::Regex  ? Type::SubscribeRegex   :
                                                  Type::SubscribeFull,
-            si);
+            std::move(si));
     }
 
     static DataMessage unsubscribe(const Topic& topic, Subscription::Type type = Subscription::Type::Null);
@@ -191,7 +191,7 @@ public:
     {
         cxxtools::SerializationInfo si;
         si <<= obj;
-        return DataMessage(topic, Type::Data, si);
+        return DataMessage(topic, Type::Data, std::move(si));
     }
 
     template <typename T>
@@ -199,7 +199,7 @@ public:
     {
         cxxtools::SerializationInfo si;
         si <<= obj;
-        return DataMessage(topic, Type::System, si);
+        return DataMessage(topic, Type::System, std::move(si));
     }
 
     /// Returns the topic where the message is sent through.

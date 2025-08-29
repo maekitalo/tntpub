@@ -41,11 +41,11 @@ DataMessage DataMessage::unsubscribe(const Topic& topic, Subscription::Type type
             std::string());
 }
 
-DataMessage::DataMessage(const Topic& topic, Type type, const cxxtools::SerializationInfo& data)
+DataMessage::DataMessage(const Topic& topic, Type type, cxxtools::SerializationInfo&& data)
     : _type(type),
       _topic(topic),
       _createDateTime(cxxtools::Clock::getSystemTime()),
-      _si(data)
+      _si(std::move(data))
 {
     setData(_si);
 }
