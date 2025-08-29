@@ -26,6 +26,7 @@ AC_CONFIG_FILES([
     demo/Makefile
     test/Makefile
     xsimu/Makefile
+    tools/Makefile
     pkgconfig/tntpub.pc
 ])
 

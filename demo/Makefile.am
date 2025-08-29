@@ -1,7 +1,5 @@
 noinst_PROGRAMS = \
-	tntpubRead \
 	tntpubReadObject \
-	tntpubSend \
 	tntpubSendObject \
 	tntpubAsyncRead \
 	tntpubAsyncReadObject
@@ -9,9 +7,7 @@ noinst_PROGRAMS = \
 noinst_HEADERS = \
 	mymessage.h
 
-tntpubRead_SOURCES = tntpubRead.cpp
 tntpubReadObject_SOURCES = tntpubReadObject.cpp
-tntpubSend_SOURCES = tntpubSend.cpp
 tntpubSendObject_SOURCES = tntpubSendObject.cpp
 tntpubAsyncRead_SOURCES = tntpubAsyncRead.cpp
 tntpubAsyncReadObject_SOURCES = tntpubAsyncReadObject.cpp

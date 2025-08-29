@@ -16,19 +16,25 @@ int main(int argc, char* argv[])
 
         cxxtools::Arg<std::string> ip(argc, argv, 'i');
         cxxtools::Arg<unsigned short> port(argc, argv, 'p', 9001);
+        cxxtools::Arg<bool> prefix(argc, argv, 'P');
+        cxxtools::Arg<bool> regex(argc, argv, 'R');
 
         if (argc <= 1)
         {
             std::cerr << "usage: " << argv[0] << " {options} {topics}\n"
                          " -i <ip>      IP of server (default localhost)\n"
-                         " -p <port>    tcp port (default: 9001)\n";
+                         " -p <port>    tcp port (default: 9001)\n"
+                         " -P           subscribe by prefix\n"
+                         " -R           subscribe by regular expression\n";
             return -1;
         }
 
         tntpub::Client client(ip, port);
 
         for (int a = 1; a < argc; ++a)
-            client.subscribe(tntpub::Topic(argv[a]));
+            client.subscribe(tntpub::Topic(argv[a]), regex  ? tntpub::Subscription::Type::Regex  :
+                                                     prefix ? tntpub::Subscription::Type::Prefix :
+                                                              tntpub::Subscription::Type::Full);
 
         while (true)
         {
