@@ -15,7 +15,6 @@ int main(int argc, char* argv[])
 
         cxxtools::Arg<std::string> ip(argc, argv, 'i');
         cxxtools::Arg<unsigned short> port(argc, argv, 'p', 9001);
-        cxxtools::Arg<unsigned> count(argc, argv, 'n', 1);
 
         if (argc != 2)
         {
@@ -37,4 +36,3 @@ int main(int argc, char* argv[])
         std::cerr << e.what() << std::endl;
     }
 }
-
