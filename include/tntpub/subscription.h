@@ -17,7 +17,7 @@ public:
         Null = ' ',
         Full = 'F',
         Prefix = 'P',
-        Regex = 'R'
+        Regex = 'X'
     };
 
 private:
