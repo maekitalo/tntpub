@@ -79,6 +79,9 @@ public:
     void setSelector(cxxtools::SelectorBase* selector)
         { _peer.setSelector(selector); }
 
+    cxxtools::SelectorBase* selector() const
+        { return _peer.selector(); }
+
     bool beginConnect(const cxxtools::net::AddrInfo& addrinfo)
         { return _peer.beginConnect(addrinfo); }
 
