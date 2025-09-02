@@ -263,4 +263,25 @@ std::ostream& operator<< (std::ostream& out, const Topic& topic)
     return out;
 }
 
+Subscription::Type DataMessage::subscriptionType(Type messageType)
+{
+    switch (messageType)
+    {
+        case Type::SubscribeFull:
+        case Type::UnsubscribeFull:
+            return Subscription::Type::Full;
+
+        case Type::SubscribePrefix:
+        case Type::UnsubscribePrefix:
+            return Subscription::Type::Prefix;
+
+        case Type::SubscribeRegex:
+        case Type::UnsubscribeRegex:
+            return Subscription::Type::Regex;
+
+        default:
+            return Subscription::Type::Null;
+    }
+}
+
 }

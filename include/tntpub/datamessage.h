@@ -250,6 +250,8 @@ public:
     void serial(uint32_t v)
         { _serial = v; }
 
+    static Subscription::Type subscriptionType(Type messageType);
+
     void appendTo(std::vector<char>& buffer) const;
     static DataMessage createFromBuffer(const char* data, unsigned size);
     static DataMessage createFromBuffer(const std::vector<char>& buffer)

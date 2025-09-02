@@ -56,7 +56,7 @@ void Responder::unsubscribeMessageReceived(const DataMessage& unsubscribeMessage
 
     for (auto it = _subscriptions.begin(); it != _subscriptions.end(); ++it)
     {
-        if (it->equals(unsubscribeMessage.topic().topic()))
+        if (it->equals(unsubscribeMessage.topic().topic(), DataMessage::subscriptionType(unsubscribeMessage.type())))
         {
             _subscriptions.erase(it);
             break;
@@ -73,7 +73,7 @@ void Responder::subscribe(const DataMessage& subscribeMessage)
 {
     log_info("subscribe topic \"" << subscribeMessage.topic() << '"');
 
-    _subscriptions.emplace_back(subscribeMessage.topic(), static_cast<Subscription::Type>(subscribeMessage.type()));
+    _subscriptions.emplace_back(subscribeMessage.topic(), DataMessage::subscriptionType(subscribeMessage.type()));
     _pubSubServer.clientSubscribed(*this, subscribeMessage);
 }
 

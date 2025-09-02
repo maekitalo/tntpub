@@ -13,11 +13,17 @@ public:
         : cxxtools::unit::TestSuite("pub")
     {
         registerMethod("sendReceive", *this, &PubTest::sendReceive);
+        registerMethod("subscribe", *this, &PubTest::subscribe);
+        registerMethod("subscribePrefix", *this, &PubTest::subscribePrefix);
+        registerMethod("subscribeRegex", *this, &PubTest::subscribeRegex);
         registerMethod("subtopic", *this, &PubTest::subtopic);
         registerMethod("mainAndSub", *this, &PubTest::mainAndSub);
     }
 
     void sendReceive();
+    void subscribe();
+    void subscribePrefix();
+    void subscribeRegex();
     void subtopic();
     void mainAndSub();
 };
@@ -54,6 +60,117 @@ void PubTest::sendReceive()
     CXXTOOLS_UNIT_ASSERT_EQUALS(results.size(), 2u);
     CXXTOOLS_UNIT_ASSERT_EQUALS(results[0], message1);
     CXXTOOLS_UNIT_ASSERT_EQUALS(results[1], message2);
+}
+
+void PubTest::subscribe()
+{
+    cxxtools::Selector selector;
+    tntpub::Server server(selector, "", 9001);
+    tntpub::Client sender(&selector, "", 9001);
+    tntpub::Client receiver(&selector, "", 9001);
+
+    unsigned count = 0;
+
+    cxxtools::connect(receiver.messageReceived,
+            [&count](const tntpub::DataMessage& dm) {
+                ++count;
+            });
+
+    sender.sendMessage(tntpub::DataMessage::createPlain("foo", "Hi"));
+    while (selector.wait(0))
+        ;
+
+    CXXTOOLS_UNIT_ASSERT_EQUALS(count, 0);
+
+    receiver.subscribe("foo");
+    while (selector.wait(0))
+        ;
+
+    sender.sendMessage(tntpub::DataMessage::createPlain("foo", "Hi"));
+    while (selector.wait(0))
+        ;
+
+    CXXTOOLS_UNIT_ASSERT_EQUALS(count, 1);
+
+    count = 0;
+    receiver.unsubscribe("foo");
+    while (selector.wait(0))
+        ;
+    sender.sendMessage(tntpub::DataMessage::createPlain("foo", "Hi"));
+    while (selector.wait(0))
+        ;
+
+    CXXTOOLS_UNIT_ASSERT_EQUALS(count, 0);
+}
+
+void PubTest::subscribePrefix()
+{
+    cxxtools::Selector selector;
+    tntpub::Server server(selector, "", 9001);
+    tntpub::Client sender(&selector, "", 9001);
+    tntpub::Client receiver(&selector, "", 9001);
+
+    unsigned count = 0;
+
+    cxxtools::connect(receiver.messageReceived,
+            [&count](const tntpub::DataMessage& dm) {
+                ++count;
+            });
+
+    receiver.subscribe("f", tntpub::Subscription::Type::Prefix);
+    while (selector.wait(0))
+        ;
+
+    sender.sendMessage(tntpub::DataMessage::createPlain("foo", "Hi"));
+    while (selector.wait(0))
+        ;
+
+    CXXTOOLS_UNIT_ASSERT_EQUALS(count, 1);
+
+    count = 0;
+    receiver.unsubscribe("f", tntpub::Subscription::Type::Prefix);
+    while (selector.wait(0))
+        ;
+    sender.sendMessage(tntpub::DataMessage::createPlain("foo", "Hi"));
+    while (selector.wait(0))
+        ;
+
+    CXXTOOLS_UNIT_ASSERT_EQUALS(count, 0);
+}
+
+void PubTest::subscribeRegex()
+{
+    cxxtools::Selector selector;
+    tntpub::Server server(selector, "", 9001);
+    tntpub::Client sender(&selector, "", 9001);
+    tntpub::Client receiver(&selector, "", 9001);
+
+    unsigned count = 0;
+
+    cxxtools::connect(receiver.messageReceived,
+            [&count](const tntpub::DataMessage& dm) {
+                ++count;
+            });
+
+    receiver.subscribe("[o]", tntpub::Subscription::Type::Regex);
+    while (selector.wait(0))
+        ;
+
+    sender.sendMessage(tntpub::DataMessage::createPlain("foo", "Hi"));
+    while (selector.wait(0))
+        ;
+
+    CXXTOOLS_UNIT_ASSERT_EQUALS(count, 1);
+
+    count = 0;
+    receiver.unsubscribe("[o]", tntpub::Subscription::Type::Regex);
+    while (selector.wait(0))
+        ;
+    sender.sendMessage(tntpub::DataMessage::createPlain("foo", "Hi"));
+    while (selector.wait(0))
+        ;
+
+    CXXTOOLS_UNIT_ASSERT_EQUALS(count, 0);
 }
 
 void PubTest::subtopic()

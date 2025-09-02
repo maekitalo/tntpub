@@ -111,8 +111,8 @@ public:
     Client& subscribeWithObject(const Topic& topic, const Obj& obj, Subscription::Type type = Subscription::Type::Full)
         { doSendMessage(DataMessage::subscribeWithObject(topic, obj, type)); return *this; }
 
-    Client& unsubscribe(const Topic& topic)
-        { doSendMessage(DataMessage::unsubscribe(topic)); return *this; }
+    Client& unsubscribe(const Topic& topic, Subscription::Type type = Subscription::Type::Full)
+        { doSendMessage(DataMessage::unsubscribe(topic, type)); return *this; }
 
     void flush();
 

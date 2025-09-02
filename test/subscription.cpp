@@ -12,12 +12,14 @@ public:
         registerMethod("full", *this, &SubscriptionTest::full);
         registerMethod("prefix", *this, &SubscriptionTest::prefix);
         registerMethod("regex", *this, &SubscriptionTest::regex);
+        registerMethod("equals", *this, &SubscriptionTest::equals);
         registerMethod("subtopic", *this, &SubscriptionTest::subtopic);
     }
 
     void full();
     void prefix();
     void regex();
+    void equals();
     void subtopic();
 };
 
@@ -49,6 +51,29 @@ void SubscriptionTest::regex()
     CXXTOOLS_UNIT_ASSERT(subscription.match(tntpub::Topic("foo1")));
     CXXTOOLS_UNIT_ASSERT(subscription.match(tntpub::Topic("foo2bar")));
     CXXTOOLS_UNIT_ASSERT(!subscription.match(tntpub::Topic("1foo")));
+}
+
+void SubscriptionTest::equals()
+{
+    tntpub::Subscription full(tntpub::Topic("foo"), tntpub::Subscription::Type::Full);
+    tntpub::Subscription prefix(tntpub::Topic("foo"), tntpub::Subscription::Type::Prefix);
+    tntpub::Subscription regex(tntpub::Topic("foo"), tntpub::Subscription::Type::Regex);
+
+    CXXTOOLS_UNIT_ASSERT(full.equals("foo", tntpub::Subscription::Type::Full));
+    CXXTOOLS_UNIT_ASSERT(!full.equals("bar", tntpub::Subscription::Type::Full));
+    CXXTOOLS_UNIT_ASSERT(!full.equals("foo", tntpub::Subscription::Type::Prefix));
+    CXXTOOLS_UNIT_ASSERT(!full.equals("foo", tntpub::Subscription::Type::Regex));
+
+    CXXTOOLS_UNIT_ASSERT(!prefix.equals("foo", tntpub::Subscription::Type::Full));
+    CXXTOOLS_UNIT_ASSERT(prefix.equals("foo", tntpub::Subscription::Type::Prefix));
+    CXXTOOLS_UNIT_ASSERT(!prefix.equals("bar", tntpub::Subscription::Type::Prefix));
+    CXXTOOLS_UNIT_ASSERT(!prefix.equals("foo", tntpub::Subscription::Type::Regex));
+
+    CXXTOOLS_UNIT_ASSERT(!regex.equals("foo", tntpub::Subscription::Type::Full));
+    CXXTOOLS_UNIT_ASSERT(!regex.equals("foo", tntpub::Subscription::Type::Prefix));
+    CXXTOOLS_UNIT_ASSERT(regex.equals("foo", tntpub::Subscription::Type::Regex));
+    CXXTOOLS_UNIT_ASSERT(!regex.equals("bar", tntpub::Subscription::Type::Regex));
+
 }
 
 void SubscriptionTest::subtopic()

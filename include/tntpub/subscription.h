@@ -45,7 +45,7 @@ public:
     ~Subscription();
 
     bool match(const Topic& topic) const;
-    bool equals(const Topic& topic) const;
+    bool equals(const Topic& topic, Type type) const;
 };
 
 }

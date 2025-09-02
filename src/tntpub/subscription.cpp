@@ -15,6 +15,7 @@ public:
 
     virtual ~Impl() = default;
     virtual bool match(const Topic& topic) const = 0;
+    virtual bool is(Subscription::Type type) const = 0;
 
     const Topic& data() const    { return  _data; }
 };
@@ -29,12 +30,18 @@ public:
         : Impl(topic)
         { }
     bool match(const Topic& topic) const override;
+    bool is(Subscription::Type type) const;
 };
 
 bool FullTopic::match(const Topic& topic) const
 {
     return topic.topic() == data().topic()
         && (data().subtopic().empty() || data().subtopic() == topic.subtopic());
+}
+
+bool FullTopic::is(Subscription::Type type) const
+{
+    return type == Subscription::Type::Full;
 }
 
 class PrefixTopic : public Subscription::Impl
@@ -44,12 +51,18 @@ public:
         : Impl(prefix)
         { }
     bool match(const Topic& topic) const override;
+    bool is(Subscription::Type type) const override;
 };
 
 bool PrefixTopic::match(const Topic& topic) const
 {
     return topic.topic().compare(0, data().topic().size(), data().topic()) == 0
         && (data().subtopic().empty() || data().subtopic() == topic.subtopic());
+}
+
+bool PrefixTopic::is(Subscription::Type type) const
+{
+    return type == Subscription::Type::Prefix;
 }
 
 class RegexTopic : public Subscription::Impl
@@ -61,12 +74,18 @@ public:
           _regex(topic.topic())
         { }
     bool match(const Topic& topic) const override;
+    bool is(Subscription::Type type) const override;
 };
 
 bool RegexTopic::match(const Topic& topic) const
 {
     return _regex.match(topic.topic())
         && (data().subtopic().empty() || data().subtopic() == topic.subtopic());
+}
+
+bool RegexTopic::is(Subscription::Type type) const
+{
+    return type == Subscription::Type::Regex;
 }
 
 }
@@ -103,10 +122,10 @@ bool Subscription::match(const Topic& topic) const
     return _impl->match(topic);
 }
 
-bool Subscription::equals(const Topic& topic) const
+bool Subscription::equals(const Topic& topic, Subscription::Type type) const
 {
     if (_impl)
-        return _impl->data().topic() == topic.topic();
+        return _impl->is(type) && _impl->data().topic() == topic.topic();
     else
         return topic.topic().empty();
 }
