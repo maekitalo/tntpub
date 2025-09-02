@@ -34,6 +34,8 @@ public:
     const std::string& topic() const        { return _topic; }
     const std::string& subtopic() const     { return _subtopic; }
 
+    operator std::string() const    { return _subtopic.empty() ? _topic : _topic + '.' + _subtopic; }
+
     bool match(const Topic& other) const
     {
         if (_topic != other._topic)
