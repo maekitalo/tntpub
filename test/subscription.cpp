@@ -12,6 +12,7 @@ public:
         registerMethod("full", *this, &SubscriptionTest::full);
         registerMethod("prefix", *this, &SubscriptionTest::prefix);
         registerMethod("regex", *this, &SubscriptionTest::regex);
+        registerMethod("regexReversed", *this, &SubscriptionTest::regexReversed);
         registerMethod("equals", *this, &SubscriptionTest::equals);
         registerMethod("subtopic", *this, &SubscriptionTest::subtopic);
     }
@@ -19,6 +20,7 @@ public:
     void full();
     void prefix();
     void regex();
+    void regexReversed();
     void equals();
     void subtopic();
 };
@@ -51,6 +53,16 @@ void SubscriptionTest::regex()
     CXXTOOLS_UNIT_ASSERT(subscription.match(tntpub::Topic("foo1")));
     CXXTOOLS_UNIT_ASSERT(subscription.match(tntpub::Topic("foo2bar")));
     CXXTOOLS_UNIT_ASSERT(!subscription.match(tntpub::Topic("1foo")));
+}
+
+void SubscriptionTest::regexReversed()
+{
+    tntpub::Subscription subscription(tntpub::Topic("o[12]"), tntpub::Subscription::Type::RegexReversed);
+
+    CXXTOOLS_UNIT_ASSERT(subscription.match(tntpub::Topic("foo")));
+    CXXTOOLS_UNIT_ASSERT(!subscription.match(tntpub::Topic("foo1")));
+    CXXTOOLS_UNIT_ASSERT(!subscription.match(tntpub::Topic("foo2bar")));
+    CXXTOOLS_UNIT_ASSERT(subscription.match(tntpub::Topic("1foo")));
 }
 
 void SubscriptionTest::equals()

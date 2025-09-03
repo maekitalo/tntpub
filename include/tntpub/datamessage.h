@@ -34,9 +34,11 @@ public:
         SubscribeFull = 'F',
         SubscribePrefix = 'P',
         SubscribeRegex = 'X',
+        SubscribeRegexReversed = 'Y',
         UnsubscribeFull = 'f',
         UnsubscribePrefix = 'p',
         UnsubscribeRegex = 'x',
+        UnsubscribeRegexReversed = 'y',
         Data = 'D',
         PlainData = 'R',
         System = 'S'
@@ -175,9 +177,10 @@ public:
         cxxtools::SerializationInfo si;
         si <<= obj;
         return DataMessage(topic,
-            type == Subscription::Type::Prefix ? Type::SubscribePrefix :
-            type == Subscription::Type::Regex  ? Type::SubscribeRegex   :
-                                                 Type::SubscribeFull,
+            type == Subscription::Type::Prefix          ? Type::SubscribePrefix :
+            type == Subscription::Type::Regex           ? Type::SubscribeRegex :
+            type == Subscription::Type::RegexReversed   ? Type::SubscribeRegexReversed :
+                                                          Type::SubscribeFull,
             std::move(si));
     }
 
@@ -219,9 +222,9 @@ public:
     bool isDataMessage() const
         { return _type == Type::Data || _type == Type::PlainData; }
     bool isSubscribeMessage() const
-        { return _type == Type::SubscribeFull || _type == Type::SubscribePrefix || _type == Type::SubscribeRegex; }
+        { return _type == Type::SubscribeFull || _type == Type::SubscribePrefix || _type == Type::SubscribeRegex || _type == Type::SubscribeRegexReversed; }
     bool isUnsubscribeMessage() const
-        { return _type == Type::UnsubscribeFull || _type == Type::UnsubscribePrefix || _type == Type::UnsubscribeRegex; }
+        { return _type == Type::UnsubscribeFull || _type == Type::UnsubscribePrefix || _type == Type::UnsubscribeRegex || _type == Type::UnsubscribeRegexReversed; }
     bool isSystemMessage() const
         { return _type == Type::System; }
 

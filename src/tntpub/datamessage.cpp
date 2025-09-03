@@ -279,6 +279,10 @@ Subscription::Type DataMessage::subscriptionType(Type messageType)
         case Type::UnsubscribeRegex:
             return Subscription::Type::Regex;
 
+        case Type::SubscribeRegexReversed:
+        case Type::UnsubscribeRegexReversed:
+            return Subscription::Type::RegexReversed;
+
         default:
             return Subscription::Type::Null;
     }

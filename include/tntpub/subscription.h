@@ -17,7 +17,8 @@ public:
         Null = ' ',
         Full = 'F',
         Prefix = 'P',
-        Regex = 'X'
+        Regex = 'X',
+        RegexReversed = 'Y',
     };
 
 private:

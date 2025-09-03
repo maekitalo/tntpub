@@ -88,6 +88,29 @@ bool RegexTopic::is(Subscription::Type type) const
     return type == Subscription::Type::Regex;
 }
 
+class RegexTopicReversed : public Subscription::Impl
+{
+    cxxtools::Regex _regex;
+public:
+    explicit RegexTopicReversed(const Topic& topic)
+        : Impl(topic),
+          _regex(topic.topic())
+        { }
+    bool match(const Topic& topic) const override;
+    bool is(Subscription::Type type) const override;
+};
+
+bool RegexTopicReversed::match(const Topic& topic) const
+{
+    return !(_regex.match(topic.topic())
+        && (data().subtopic().empty() || data().subtopic() == topic.subtopic()));
+}
+
+bool RegexTopicReversed::is(Subscription::Type type) const
+{
+    return type == Subscription::Type::RegexReversed;
+}
+
 }
 
 Subscription::Subscription(const Topic& topic, Type type)
@@ -99,6 +122,7 @@ Subscription::Subscription(const Topic& topic, Type type)
         case Type::Full: _impl = new FullTopic(topic); break;
         case Type::Prefix: _impl = new PrefixTopic(topic); break;
         case Type::Regex: _impl = new RegexTopic(topic); break;
+        case Type::RegexReversed: _impl = new RegexTopicReversed(topic); break;
     }
 }
 
