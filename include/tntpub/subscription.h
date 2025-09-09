@@ -17,7 +17,7 @@ public:
         Null = ' ',
         Full = 'F',
         Prefix = 'P',
-        Regex = 'X',
+        Regex = 'X',        // match subtopic against regex
         RegexReversed = 'Y',
     };
 

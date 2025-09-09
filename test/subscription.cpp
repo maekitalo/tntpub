@@ -47,22 +47,24 @@ void SubscriptionTest::prefix()
 
 void SubscriptionTest::regex()
 {
-    tntpub::Subscription subscription(tntpub::Topic("o[12]"), tntpub::Subscription::Type::Regex);
+    tntpub::Subscription subscription(tntpub::Topic("topic", "o[12]"), tntpub::Subscription::Type::Regex);
 
-    CXXTOOLS_UNIT_ASSERT(!subscription.match(tntpub::Topic("foo")));
-    CXXTOOLS_UNIT_ASSERT(subscription.match(tntpub::Topic("foo1")));
-    CXXTOOLS_UNIT_ASSERT(subscription.match(tntpub::Topic("foo2bar")));
-    CXXTOOLS_UNIT_ASSERT(!subscription.match(tntpub::Topic("1foo")));
+    CXXTOOLS_UNIT_ASSERT(!subscription.match(tntpub::Topic("topic", "foo")));
+    CXXTOOLS_UNIT_ASSERT(subscription.match(tntpub::Topic("topic", "foo1")));
+    CXXTOOLS_UNIT_ASSERT(subscription.match(tntpub::Topic("topic", "foo2bar")));
+    CXXTOOLS_UNIT_ASSERT(!subscription.match(tntpub::Topic("topic", "1foo")));
+    CXXTOOLS_UNIT_ASSERT(!subscription.match(tntpub::Topic("topic1", "foo1")));
 }
 
 void SubscriptionTest::regexReversed()
 {
-    tntpub::Subscription subscription(tntpub::Topic("o[12]"), tntpub::Subscription::Type::RegexReversed);
+    tntpub::Subscription subscription(tntpub::Topic("topic", "o[12]"), tntpub::Subscription::Type::RegexReversed);
 
-    CXXTOOLS_UNIT_ASSERT(subscription.match(tntpub::Topic("foo")));
-    CXXTOOLS_UNIT_ASSERT(!subscription.match(tntpub::Topic("foo1")));
-    CXXTOOLS_UNIT_ASSERT(!subscription.match(tntpub::Topic("foo2bar")));
-    CXXTOOLS_UNIT_ASSERT(subscription.match(tntpub::Topic("1foo")));
+    CXXTOOLS_UNIT_ASSERT(subscription.match(tntpub::Topic("topic", "foo")));
+    CXXTOOLS_UNIT_ASSERT(!subscription.match(tntpub::Topic("topic", "foo1")));
+    CXXTOOLS_UNIT_ASSERT(!subscription.match(tntpub::Topic("topic", "foo2bar")));
+    CXXTOOLS_UNIT_ASSERT(subscription.match(tntpub::Topic("topic", "1foo")));
+    CXXTOOLS_UNIT_ASSERT(!subscription.match(tntpub::Topic("topic1", "1foo")));
 }
 
 void SubscriptionTest::equals()

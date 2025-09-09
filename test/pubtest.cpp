@@ -80,7 +80,7 @@ void PubTest::subscribe()
     while (selector.wait(0))
         ;
 
-    CXXTOOLS_UNIT_ASSERT_EQUALS(count, 0);
+    CXXTOOLS_UNIT_ASSERT_EQUALS(count, 0u);
 
     receiver.subscribe("foo");
     while (selector.wait(0))
@@ -90,7 +90,7 @@ void PubTest::subscribe()
     while (selector.wait(0))
         ;
 
-    CXXTOOLS_UNIT_ASSERT_EQUALS(count, 1);
+    CXXTOOLS_UNIT_ASSERT_EQUALS(count, 1u);
 
     count = 0;
     receiver.unsubscribe("foo");
@@ -100,7 +100,7 @@ void PubTest::subscribe()
     while (selector.wait(0))
         ;
 
-    CXXTOOLS_UNIT_ASSERT_EQUALS(count, 0);
+    CXXTOOLS_UNIT_ASSERT_EQUALS(count, 0u);
 }
 
 void PubTest::subscribePrefix()
@@ -125,7 +125,7 @@ void PubTest::subscribePrefix()
     while (selector.wait(0))
         ;
 
-    CXXTOOLS_UNIT_ASSERT_EQUALS(count, 1);
+    CXXTOOLS_UNIT_ASSERT_EQUALS(count, 1u);
 
     count = 0;
     receiver.unsubscribe("f", tntpub::Subscription::Type::Prefix);
@@ -135,7 +135,7 @@ void PubTest::subscribePrefix()
     while (selector.wait(0))
         ;
 
-    CXXTOOLS_UNIT_ASSERT_EQUALS(count, 0);
+    CXXTOOLS_UNIT_ASSERT_EQUALS(count, 0u);
 }
 
 void PubTest::subscribeRegex()
@@ -152,25 +152,25 @@ void PubTest::subscribeRegex()
                 ++count;
             });
 
-    receiver.subscribe("[o]", tntpub::Subscription::Type::Regex);
+    receiver.subscribe(tntpub::Topic("topic", "[o]"), tntpub::Subscription::Type::Regex);
     while (selector.wait(0))
         ;
 
-    sender.sendMessage(tntpub::DataMessage::createPlain("foo", "Hi"));
+    sender.sendMessage(tntpub::DataMessage::createPlain(tntpub::Topic("topic", "foo"), "Hi"));
     while (selector.wait(0))
         ;
 
-    CXXTOOLS_UNIT_ASSERT_EQUALS(count, 1);
+    CXXTOOLS_UNIT_ASSERT_EQUALS(count, 1u);
 
     count = 0;
-    receiver.unsubscribe("[o]", tntpub::Subscription::Type::Regex);
+    receiver.unsubscribe(tntpub::Topic("topic", "[o]"), tntpub::Subscription::Type::Regex);
     while (selector.wait(0))
         ;
-    sender.sendMessage(tntpub::DataMessage::createPlain("foo", "Hi"));
+    sender.sendMessage(tntpub::DataMessage::createPlain(tntpub::Topic("topic", "foo"), "Hi"));
     while (selector.wait(0))
         ;
 
-    CXXTOOLS_UNIT_ASSERT_EQUALS(count, 0);
+    CXXTOOLS_UNIT_ASSERT_EQUALS(count, 0u);
 }
 
 void PubTest::subtopic()
