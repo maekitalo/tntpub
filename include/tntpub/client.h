@@ -11,7 +11,7 @@
 #include <tntpub/messagesinksource.h>
 #include <cxxtools/bin/deserializer.h>
 #include <cxxtools/signal.h>
-#include <cxxtools/net/tcpstream.h>
+#include <cxxtools/net/tcpsocket.h>
 #include <vector>
 
 namespace tntpub
@@ -102,6 +102,12 @@ public:
 
     bool isConnected() const
         { return _peer.isConnected(); }
+
+    void setTimeout(cxxtools::Milliseconds timeout)
+        { _peer.setTimeout(timeout); }
+
+    cxxtools::Milliseconds timeout() const
+        { return _peer.timeout(); }
 
     // subscribe to topic
     Client& subscribe(const Topic& topic, Subscription::Type type = Subscription::Type::Full, const std::string& data = std::string());
