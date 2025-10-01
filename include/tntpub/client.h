@@ -33,6 +33,8 @@ class Client : public MessageSinkSource, public cxxtools::Connectable
     void onOutput(cxxtools::IODevice&);
     void onInput(cxxtools::IODevice&);
     void doSendMessage(const DataMessage& msg) override;
+    void subscribePriv(const DataMessage& msg);
+    void unsubscribePriv(const DataMessage& msg);
 
     void init();
     void beginRead();
@@ -110,15 +112,16 @@ public:
         { return _peer.timeout(); }
 
     // subscribe to topic
-    Client& subscribe(const Topic& topic, Subscription::Type type = Subscription::Type::Full, const std::string& data = std::string());
+    Client& subscribe(const Topic& topic, Subscription::Type type = Subscription::Type::Full, const std::string& data = std::string())
+        { subscribePriv(DataMessage::subscribe(topic, type, data)); return *this; }
 
     // subscribe to topic with additional information
     template <typename Obj>
     Client& subscribeWithObject(const Topic& topic, const Obj& obj, Subscription::Type type = Subscription::Type::Full)
-        { doSendMessage(DataMessage::subscribeWithObject(topic, obj, type)); return *this; }
+        { subscribePriv(DataMessage::subscribeWithObject(topic, obj, type)); return *this; }
 
     Client& unsubscribe(const Topic& topic, Subscription::Type type = Subscription::Type::Full)
-        { doSendMessage(DataMessage::unsubscribe(topic, type)); return *this; }
+        { unsubscribePriv(DataMessage::unsubscribe(topic, type)); return *this; }
 
     void flush();
 

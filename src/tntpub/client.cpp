@@ -31,10 +31,17 @@ void Client::beginRead()
     _peer.beginRead(_inputBuffer.data(), _inputBuffer.size());
 }
 
-Client& Client::subscribe(const Topic& topic, Subscription::Type type, const std::string& data)
+void Client::subscribePriv(const DataMessage& msg)
 {
-    doSendMessage(DataMessage::subscribe(topic, type, data));
-    return *this;
+    log_info("subscribe " << msg.topic() << " type " << static_cast<char>(msg.type()));
+    log_debug("subscribe " << msg.topic() << " type " << static_cast<char>(msg.type()) << " with \"" << msg.data() << '"');
+    doSendMessage(msg);
+}
+
+void Client::unsubscribePriv(const DataMessage& msg)
+{
+    log_info("unsubscribe " << msg.topic() << " type " << static_cast<char>(msg.type()));
+    doSendMessage(msg);
 }
 
 void Client::doSendMessage(const DataMessage& dataMessage)
@@ -125,7 +132,7 @@ void Client::onClosed(cxxtools::net::TcpSocket&)
 
 void Client::onOutput(cxxtools::IODevice&)
 {
-    log_debug("onOutput");
+    log_finer("onOutput");
     try
     {
         auto count = _peer.endWrite();
@@ -166,7 +173,7 @@ void Client::onOutput(cxxtools::IODevice&)
 
 void Client::onInput(cxxtools::IODevice&)
 {
-    log_debug("onInput");
+    log_finer("onInput");
 
     try
     {

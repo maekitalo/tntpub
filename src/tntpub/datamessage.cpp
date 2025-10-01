@@ -86,7 +86,7 @@ void DataMessage::appendTo(std::vector<char>& buffer) const
     header._type = _type;
     header._serial = _serial;
 
-    log_debug("header created; " << cxxtools::Json(header));
+    log_debug("new header; " << cxxtools::Json(header));
 
     _topic.topic().copy(ptr + header.topicOffset(), _topic.topic().size());
     _topic.subtopic().copy(ptr + header.subtopicOffset(), _topic.subtopic().size());
@@ -112,12 +112,12 @@ DataMessage DataMessage::createFromBuffer(const char* data, unsigned size)
 
 unsigned DataMessageDeserializer::processMessage(const char* buffer, unsigned bufsize, std::function<void(DataMessage&)> messageReceived)
 {
-    log_debug("process message; " << bufsize << " bytes available");
+    log_finer("parse message from buffer; " << bufsize << " bytes available");
     log_finest(cxxtools::hexDump(buffer, bufsize));
 
     if (bufsize < sizeof(DataMessage::Header1))
     {
-        log_debug("message incomplete - size: " << bufsize << " expected: " << sizeof(DataMessage::Header));
+        log_finer("message incomplete - size: " << bufsize << " expected: " << sizeof(DataMessage::Header));
         return 0;
     }
 
@@ -150,7 +150,7 @@ unsigned DataMessageDeserializer::processMessage(const char* buffer, unsigned bu
         buffer += header.messageLength();
         remaining -= header.messageLength();
 
-        log_debug("message to topic <" << dataMessage.topic().topic() << "> processed " << remaining << " left");
+        log_debug("message to topic <" << dataMessage.topic().topic() << "> processed " << remaining << " bytes left in input buffer");
 
         messageReceived(dataMessage);
         message(dataMessage);
@@ -177,7 +177,7 @@ unsigned DataMessageDeserializer::processMessage(const char* buffer, unsigned bu
         buffer += header.messageLength();
         remaining -= header.messageLength();
 
-        log_debug("message to topic <" << dataMessage.topic().topic() << "> processed " << remaining << " left");
+        log_debug("message to topic <" << dataMessage.topic().topic() << "> processed " << remaining << " bytes left in input buffer");
 
         messageReceived(dataMessage);
         message(dataMessage);
