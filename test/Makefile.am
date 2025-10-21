@@ -8,6 +8,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/include
 alltests_SOURCES = \
     test-main.cpp \
     datamessage.cpp \
+    invalidMessage.cpp \
     pubtest.cpp \
     subscription.cpp
 
