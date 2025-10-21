@@ -93,11 +93,11 @@ void DataMessage::appendTo(std::vector<char>& buffer) const
     _data.copy(ptr + header.dataOffset(), _data.size());
 }
 
-DataMessage DataMessage::createFromBuffer(const char* data, unsigned size)
+DataMessage DataMessage::createFromBuffer(const char* data, unsigned size, bool version1Flag)
 {
     DataMessage result;
 
-    DataMessageDeserializer deserializer;
+    DataMessageDeserializer deserializer(version1Flag);
 
     if (!deserializer.processMessage(
                 data,
@@ -159,7 +159,7 @@ unsigned DataMessageDeserializer::processMessage(const char* buffer, unsigned bu
         messageReceived(dataMessage);
         message(dataMessage);
     }
-    else
+    else if (_version1Flag)
     {
         // old format
         log_debug("old format detected");
@@ -190,6 +190,8 @@ unsigned DataMessageDeserializer::processMessage(const char* buffer, unsigned bu
         messageReceived(dataMessage);
         message(dataMessage);
     }
+    else
+        throw std::runtime_error("invalid message received");
 
     return bufsize - remaining;
 }

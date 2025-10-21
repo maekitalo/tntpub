@@ -256,7 +256,7 @@ public:
     static Subscription::Type subscriptionType(Type messageType);
 
     void appendTo(std::vector<char>& buffer) const;
-    static DataMessage createFromBuffer(const char* data, unsigned size);
+    static DataMessage createFromBuffer(const char* data, unsigned size, bool version1Flag = true);
     static DataMessage createFromBuffer(const std::vector<char>& buffer)
         { return createFromBuffer(buffer.data(), buffer.size()); }
 };
@@ -264,8 +264,13 @@ public:
 class DataMessageDeserializer
 {
     std::string _inputData;
+    bool _version1Flag;
 
 public:
+    DataMessageDeserializer(bool version1Flag = false)
+        : _version1Flag(version1Flag)
+    { }
+
     void addData(const char* buffer, unsigned bufsize)
         { _inputData.append(buffer, bufsize); }
 
