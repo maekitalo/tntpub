@@ -139,6 +139,10 @@ unsigned DataMessageDeserializer::processMessage(const char* buffer, unsigned bu
             return 0;
         }
 
+        if (header.dataOffset() > header.messageLength())
+            throw std::runtime_error("corrupt message");
+        log_warn_if(header.dataOffset() > 1024, "large message header (" << header.dataOffset() << " bytes)");
+
         DataMessage dataMessage(
             Topic(std::string(buffer + header.topicOffset(), header.topicLength()),
                   std::string(buffer + header.subtopicOffset(), header.subtopicLength())),
@@ -166,6 +170,10 @@ unsigned DataMessageDeserializer::processMessage(const char* buffer, unsigned bu
             log_debug("message data incomplete - size: " << bufsize << " expected: " << header.messageLength());
             return 0;
         }
+
+        if (header.dataOffset() > header.messageLength())
+            throw std::runtime_error("corrupt message");
+        log_warn_if(header.dataOffset() > 1024, "large message header (" << header.dataOffset() << " bytes)");
 
         DataMessage dataMessage(
             Topic(std::string(buffer + header.topicOffset(), header.topicLength())),
