@@ -245,6 +245,13 @@ public:
     template <typename Obj> void get(Obj& obj) const
     { si() >>= obj; }
 
+    template <typename Obj> Obj get() const
+    {
+        Obj obj;
+        get(obj);
+        return obj;
+    }
+
     void touch()
         { _createDateTime = cxxtools::Clock::getSystemTime(); }
 
