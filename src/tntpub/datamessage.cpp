@@ -110,6 +110,19 @@ DataMessage DataMessage::createFromBuffer(const char* data, unsigned size, bool 
     return result;
 }
 
+inline static bool isValidType(DataMessage::Type type)
+{
+    return type == DataMessage::Type::SubscribeFull
+        || type == DataMessage::Type::SubscribePrefix
+        || type == DataMessage::Type::SubscribeRegex
+        || type == DataMessage::Type::UnsubscribeFull
+        || type == DataMessage::Type::UnsubscribePrefix
+        || type == DataMessage::Type::UnsubscribeRegex
+        || type == DataMessage::Type::Data
+        || type == DataMessage::Type::PlainData
+        || type == DataMessage::Type::System;
+}
+
 unsigned DataMessageDeserializer::processMessage(const char* buffer, unsigned bufsize, std::function<void(DataMessage&)> messageReceived)
 {
     log_finer("parse message from buffer; " << bufsize << " bytes available");
@@ -127,6 +140,12 @@ unsigned DataMessageDeserializer::processMessage(const char* buffer, unsigned bu
     log_finer("header magic number " << header._magic);
     if (header._magic == DataMessage::Header::magic)
     {
+
+        if (header.dataOffset() > header.messageLength()
+            || !isValidType(header._type))
+            throw std::runtime_error("corrupt message");
+        log_warn_if(header.dataOffset() > 1024, "large message header (" << header.dataOffset() << " bytes)");
+
         if (bufsize < sizeof(DataMessage::Header))
         {
             log_debug("message incomplete - size: " << bufsize << " expected: " << sizeof(DataMessage::Header));
@@ -138,10 +157,6 @@ unsigned DataMessageDeserializer::processMessage(const char* buffer, unsigned bu
             log_debug("message data incomplete - size: " << bufsize << " expected: " << header.messageLength());
             return 0;
         }
-
-        if (header.dataOffset() > header.messageLength())
-            throw std::runtime_error("corrupt message");
-        log_warn_if(header.dataOffset() > 1024, "large message header (" << header.dataOffset() << " bytes)");
 
         DataMessage dataMessage(
             Topic(std::string(buffer + header.topicOffset(), header.topicLength()),
@@ -165,15 +180,16 @@ unsigned DataMessageDeserializer::processMessage(const char* buffer, unsigned bu
         log_debug("old format detected");
         const auto& header = reinterpret_cast<const DataMessage::Header1&>(*buffer);
 
+        if (header.dataOffset() > header.messageLength()
+            || !isValidType(header._type))
+            throw std::runtime_error("corrupt message");
+        log_warn_if(header.dataOffset() > 1024, "large message header (" << header.dataOffset() << " bytes)");
+
         if (bufsize < header.messageLength())
         {
             log_debug("message data incomplete - size: " << bufsize << " expected: " << header.messageLength());
             return 0;
         }
-
-        if (header.dataOffset() > header.messageLength())
-            throw std::runtime_error("corrupt message");
-        log_warn_if(header.dataOffset() > 1024, "large message header (" << header.dataOffset() << " bytes)");
 
         DataMessage dataMessage(
             Topic(std::string(buffer + header.topicOffset(), header.topicLength())),
