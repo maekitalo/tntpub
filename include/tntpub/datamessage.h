@@ -161,8 +161,8 @@ public:
 #endif
     DataMessage(const Topic& topic, const Obj& obj)
         : _type(Type::Data),
-          _serial(0),
           _topic(topic),
+          _serial(0),
           _createDateTime(cxxtools::Clock::getSystemTime())
     {
         _si <<= obj;

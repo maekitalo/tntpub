@@ -12,6 +12,7 @@
 #include <cxxtools/bin/deserializer.h>
 #include <cxxtools/signal.h>
 #include <cxxtools/net/tcpsocket.h>
+#include <cxxtools/destructionsentry.h>
 #include <vector>
 
 namespace tntpub
@@ -27,6 +28,7 @@ class Client : public MessageSinkSource, public cxxtools::Connectable
     DataMessageDeserializer _deserializer;
     DataMessage _dataMessage;
     bool _autoSync;
+    cxxtools::DestructionSentryPtr _sentryPtr;
 
     void onConnected(cxxtools::net::TcpSocket&);
     void onClosed(cxxtools::net::TcpSocket&);

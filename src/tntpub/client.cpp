@@ -133,6 +133,9 @@ void Client::onClosed(cxxtools::net::TcpSocket&)
 void Client::onOutput(cxxtools::IODevice&)
 {
     log_finer("onOutput");
+
+    cxxtools::DestructionSentry sentry(_sentryPtr);
+
     try
     {
         auto count = _peer.endWrite();
@@ -145,6 +148,12 @@ void Client::onOutput(cxxtools::IODevice&)
             {
                 log_finer("output buffer empty - signal messagesSent");
                 messagesSent(*this);
+
+                if (sentry.deleted())
+                {
+                    log_debug("client was deleted");
+                    return;
+                }
             }
             else
             {
@@ -175,6 +184,8 @@ void Client::onInput(cxxtools::IODevice&)
 {
     log_finer("onInput");
 
+    cxxtools::DestructionSentry sentry(_sentryPtr);
+
     try
     {
         auto count = _peer.endRead();
@@ -187,7 +198,18 @@ void Client::onInput(cxxtools::IODevice&)
             log_debug("got message to topic <" << _dataMessage.topic().topic() << '>');
             log_finer_if(_dataMessage.type() == DataMessage::Type::Data, cxxtools::Json(_dataMessage.si()).beautify(true));
             dispatchMessage(_dataMessage);
+
+            if (sentry.deleted())
+            {
+                log_debug("client was deleted");
+                return;
+            }
         }
+
+        if (_peer.eof())
+            closed(*this);
+        else
+            beginRead();
     }
     catch (const std::exception& e)
     {
@@ -196,11 +218,6 @@ void Client::onInput(cxxtools::IODevice&)
         closed(*this);
         return;
     }
-
-    if (_peer.eof())
-        closed(*this);
-    else
-        beginRead();
 }
 
 }
