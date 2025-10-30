@@ -18,10 +18,16 @@ namespace tntpub
 
 void Client::init()
 {
+    log_debug(static_cast<void*>(this) << " client created");
     cxxtools::connect(_peer.outputReady, *this, &Client::onOutput);
     cxxtools::connect(_peer.inputReady, *this, &Client::onInput);
     cxxtools::connect(_peer.connected, *this, &Client::onConnected);
     cxxtools::connect(_peer.closed, *this, &Client::onClosed);
+}
+
+Client::~Client()
+{
+    log_debug(static_cast<void*>(this) << " client destroyed");
 }
 
 void Client::beginRead()

@@ -56,7 +56,6 @@ protected:
 
     virtual void subscribeMessageReceived(const DataMessage& subscribeMessage);
     virtual void unsubscribeMessageReceived(const DataMessage& unsubscribeMessage);
-    virtual void systemMessageReceived(const DataMessage& systemMessage);
 
 public:
     explicit Responder(Server& pubSubServer);
@@ -73,6 +72,7 @@ public:
     // signals that all messages has been sent to the peer
     cxxtools::Signal<Responder&> outputBufferEmpty;
     cxxtools::Signal<Responder&> outputBufferFull;
+    cxxtools::Signal<const DataMessage&>& systemMessageReceived;
 
     // get and set the maximum size of the output buffer.
     // when the buffer is full, the signal outputBufferFull is sent and

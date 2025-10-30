@@ -53,6 +53,7 @@ public:
     cxxtools::Signal<Responder&> clientConnected;
     cxxtools::Signal<Responder&> clientDisconnected;
     cxxtools::Signal<Responder&, const DataMessage&> clientSubscribed;
+    cxxtools::Signal<const DataMessage&> systemMessageReceived;
 
     // get and set the maximum size of the output buffer.
     // when the buffer is full, the signal Responder::outputBufferFull is sent and

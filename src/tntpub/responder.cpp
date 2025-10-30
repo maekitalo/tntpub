@@ -27,7 +27,8 @@ unsigned Responder::_maxOBuf = 0;
 
 Responder::Responder(Server& pubSubServer)
     : _pubSubServer(pubSubServer),
-      _socket(*pubSubServer.selector(), pubSubServer._server)
+      _socket(*pubSubServer.selector(), pubSubServer._server),
+      systemMessageReceived(pubSubServer.systemMessageReceived)
 {
     log_info("new client " << static_cast<void*>(this) << " connected");
 
@@ -65,11 +66,6 @@ void Responder::unsubscribeMessageReceived(const DataMessage& unsubscribeMessage
     }
 }
 
-void Responder::systemMessageReceived(const DataMessage& systemMessage)
-{
-    return;
-}
-
 void Responder::subscribe(const DataMessage& subscribeMessage)
 {
     log_info(static_cast<void*>(this) << " subscribe topic \"" << subscribeMessage.topic() << '"');
@@ -98,29 +94,29 @@ void Responder::onInput(cxxtools::net::BufferedSocket&)
         log_finer(input.size() << " Bytes available");
         log_finer(cxxtools::hexDump(input));
 
-        _deserializer.advance(input.data(), input.size(), [this, &sentry] (DataMessage& dataMessage) {
-            log_debug(static_cast<void*>(this) << " process message " << cxxtools::Json(dataMessage));
-            if (dataMessage.isDataMessage())
+        _deserializer.advance(input.data(), input.size(), [this, &sentry] (DataMessage& message) {
+            log_debug(static_cast<void*>(this) << " process message " << cxxtools::Json(message));
+            if (message.isDataMessage())
             {
-                log_debug("data message to topic <" << dataMessage.topic() << "> received");
-                dataMessage.setNextSerial();
-                _pubSubServer.processMessage(*this, dataMessage);
+                log_debug("data message to topic <" << message.topic() << "> received");
+                message.setNextSerial();
+                _pubSubServer.processMessage(*this, message);
             }
-            else if (dataMessage.isSubscribeMessage())
+            else if (message.isSubscribeMessage())
             {
-                subscribeMessageReceived(dataMessage);
+                subscribeMessageReceived(message);
             }
-            else if (dataMessage.isUnsubscribeMessage())
+            else if (message.isUnsubscribeMessage())
             {
-                unsubscribeMessageReceived(dataMessage);
+                unsubscribeMessageReceived(message);
             }
-            else if (dataMessage.isSystemMessage())
+            else if (message.isSystemMessage())
             {
-                systemMessageReceived(dataMessage);
+                systemMessageReceived(message);
             }
             else
             {
-                log_warn("unknown message type \"" << static_cast<unsigned>(dataMessage.type()) << '"');
+                log_warn("unknown message type \"" << static_cast<unsigned>(message.type()) << '"');
             }
 
             if (sentry.deleted())

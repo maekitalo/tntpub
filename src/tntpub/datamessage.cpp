@@ -140,17 +140,20 @@ unsigned DataMessageDeserializer::processMessage(const char* buffer, unsigned bu
     log_finer("header magic number " << header._magic);
     if (header._magic == DataMessage::Header::magic)
     {
-
-        if (header.dataOffset() > header.messageLength()
-            || !isValidType(header._type))
-            throw std::runtime_error("corrupt message");
-        log_warn_if(header.dataOffset() > 1024, "large message header (" << header.dataOffset() << " bytes)");
-
         if (bufsize < sizeof(DataMessage::Header))
         {
             log_debug("message incomplete - size: " << bufsize << " expected: " << sizeof(DataMessage::Header));
             return 0;
         }
+
+        if (header.dataOffset() > header.messageLength()
+            || !isValidType(header._type))
+        {
+            log_warn("corrupt message; dataOffset=" << header.dataOffset() << " message length " << header.messageLength() << " type " << static_cast<char>(header._type));
+            log_debug(cxxtools::hexDump(buffer, sizeof(DataMessage::Header)));
+            throw std::runtime_error("corrupt message");
+        }
+        log_warn_if(header.dataOffset() > 1024, "large message header (" << header.dataOffset() << " bytes)");
 
         if (bufsize < header.messageLength())
         {

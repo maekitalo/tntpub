@@ -80,6 +80,8 @@ public:
         beginRead();
     }
 
+    ~Client();
+
     void setSelector(cxxtools::SelectorBase* selector)
         { _peer.setSelector(selector); }
 
