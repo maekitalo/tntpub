@@ -31,6 +31,7 @@ Responder::Responder(Server& pubSubServer)
       systemMessageReceived(pubSubServer.systemMessageReceived)
 {
     log_info("new client " << static_cast<void*>(this) << " connected");
+    log_debug("connection from " << _socket.getPeerAddr() << " fd " << _socket.getFd());
 
     cxxtools::connect(_socket.inputReady, *this, &Responder::onInput);
     cxxtools::connect(_socket.outputBufferEmpty, *this, &Responder::onOutputBufferEmpty);
@@ -47,7 +48,7 @@ Responder::~Responder()
 
 void Responder::subscribeMessageReceived(const DataMessage& subscribeMessage)
 {
-    log_info("subscribe message received");
+    log_info(static_cast<void*>(this) << " subscribe message received");
     subscribe(subscribeMessage);
 }
 
@@ -82,7 +83,7 @@ void Responder::subscribe(const Topic& topic, Subscription::Type type)
 
 void Responder::onInput(cxxtools::net::BufferedSocket&)
 {
-    log_finer("input detected " << static_cast<void*>(this));
+    log_finest("input detected " << static_cast<void*>(this));
 
     cxxtools::DestructionSentry sentry(_sentry);
 
@@ -91,14 +92,14 @@ void Responder::onInput(cxxtools::net::BufferedSocket&)
         _socket.endRead();
 
         auto& input = _socket.inputBuffer();
-        log_finer(input.size() << " Bytes available");
-        log_finer(cxxtools::hexDump(input));
+        log_finest(input.size() << " Bytes available");
+        log_finest(cxxtools::hexDump(input));
 
         _deserializer.advance(input.data(), input.size(), [this, &sentry] (DataMessage& message) {
             log_debug(static_cast<void*>(this) << " process message " << cxxtools::Json(message));
             if (message.isDataMessage())
             {
-                log_debug("data message to topic <" << message.topic() << "> received");
+                log_debug(static_cast<void*>(this) << " data message to topic <" << message.topic() << "> received");
                 message.setNextSerial();
                 _pubSubServer.processMessage(*this, message);
             }
@@ -140,13 +141,16 @@ void Responder::onInput(cxxtools::net::BufferedSocket&)
 
 bool Responder::isSubscribed(const Topic& topic)
 {
-    log_debug(static_cast<const void*>(this) << " check topic \"" << topic << '"');
-
     for (const auto& subscription: _subscriptions)
+    {
         if (subscription.match(topic))
+        {
+            log_finer(static_cast<const void*>(this) << " topic \"" << topic << "\" subscribed");
             return true;
+        }
+    }
 
-    log_debug("topic not subscribed");
+    log_finer(static_cast<const void*>(this) << " topic \"" << topic << "\" not subscribed");
     return false;
 }
 
