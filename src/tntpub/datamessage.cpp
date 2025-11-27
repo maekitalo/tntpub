@@ -9,6 +9,7 @@
 #include <cxxtools/log.h>
 #include <cxxtools/json.h>
 #include <cxxtools/hexdump.h>
+#include <cxxtools/md5stream.h>
 #include <sstream>
 #include <iostream>
 
@@ -290,6 +291,16 @@ std::ostream& operator<< (std::ostream& out, const Topic& topic)
     if (!topic.subtopic().empty())
         out << '[' << topic.subtopic() << ']';
     return out;
+}
+
+std::string DataMessage::checksum(bool withSerial) const
+{
+    cxxtools::Md5stream s;
+    s << static_cast<std::underlying_type<Type>::type>(_type) << _topic;
+    if (withSerial)
+        s << _serial;
+    s << _createDateTime.date().julian() << _createDateTime.time().totalUSecs() << _data;
+    return s.getHexDigest();
 }
 
 Subscription::Type DataMessage::subscriptionType(Type messageType)

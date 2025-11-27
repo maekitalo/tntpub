@@ -259,6 +259,7 @@ public:
         { _serial = ++_lastSerial; }
     void serial(uint32_t v)
         { _serial = v; }
+    std::string checksum(bool withSerial = true) const;
 
     static Subscription::Type subscriptionType(Type messageType);
 

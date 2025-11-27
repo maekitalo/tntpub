@@ -16,6 +16,7 @@ public:
         registerMethod("serialize", *this, &DataMessageTest::serialize);
         registerMethod("fromBuffer", *this, &DataMessageTest::fromBuffer);
         registerMethod("serial", *this, &DataMessageTest::serial);
+        registerMethod("checksum", *this, &DataMessageTest::checksum);
     }
 
     void create();
@@ -26,6 +27,7 @@ public:
     void serialize();
     void fromBuffer();
     void serial();
+    void checksum();
 };
 
 cxxtools::unit::RegisterTest<DataMessageTest> register_DataMessageTest;
@@ -129,4 +131,14 @@ void DataMessageTest::serial()
 
     dm2.setNextSerial();
     CXXTOOLS_UNIT_ASSERT(dm2.serial() > dm.serial());
+}
+
+void DataMessageTest::checksum()
+{
+    auto dm = tntpub::DataMessage::createPlain("foo", "data");
+    auto dm2 = dm;
+    CXXTOOLS_UNIT_ASSERT_EQUALS(dm.checksum(), dm2.checksum());;
+
+    dm2 = tntpub::DataMessage::createPlain("foo", "data");
+    CXXTOOLS_UNIT_ASSERT(dm.checksum() != dm2.checksum());;
 }
