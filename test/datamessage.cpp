@@ -53,7 +53,7 @@ void DataMessageTest::createPlain()
 void DataMessageTest::subscribeMessage()
 {
     auto dm = tntpub::DataMessage::subscribe("foo");
-    CXXTOOLS_UNIT_ASSERT_EQUALS(dm.topic().topic(), "foo");
+    CXXTOOLS_UNIT_ASSERT_EQUALS(dm.topic().main(), "foo");
     CXXTOOLS_UNIT_ASSERT(dm.isSubscribeMessage());
     CXXTOOLS_UNIT_ASSERT(!dm.isUnsubscribeMessage());
     CXXTOOLS_UNIT_ASSERT(!dm.isDataMessage());
@@ -63,7 +63,7 @@ void DataMessageTest::subscribeMessageWithObject()
 {
     std::vector<int> v{ 3, 4, 6 };
     auto dm = tntpub::DataMessage::subscribeWithObject("foo", v);
-    CXXTOOLS_UNIT_ASSERT_EQUALS(dm.topic().topic(), "foo");
+    CXXTOOLS_UNIT_ASSERT_EQUALS(dm.topic().main(), "foo");
     CXXTOOLS_UNIT_ASSERT(dm.isSubscribeMessage());
     CXXTOOLS_UNIT_ASSERT(!dm.isUnsubscribeMessage());
     CXXTOOLS_UNIT_ASSERT(!dm.isDataMessage());
@@ -76,7 +76,7 @@ void DataMessageTest::subscribeMessageWithObject()
 void DataMessageTest::unsubscribeMessage()
 {
     auto dm = tntpub::DataMessage::unsubscribe("foo");
-    CXXTOOLS_UNIT_ASSERT_EQUALS(dm.topic().topic(), "foo");
+    CXXTOOLS_UNIT_ASSERT_EQUALS(dm.topic().main(), "foo");
     CXXTOOLS_UNIT_ASSERT(dm.isUnsubscribeMessage());
     CXXTOOLS_UNIT_ASSERT(!dm.isSubscribeMessage());
     CXXTOOLS_UNIT_ASSERT(!dm.isDataMessage());
@@ -96,7 +96,7 @@ void DataMessageTest::serialize()
 
     std::vector<int> result;
     auto messageProcessed = deserializer.processMessage([&result](tntpub::DataMessage& dm) {
-        CXXTOOLS_UNIT_ASSERT_EQUALS(dm.topic().topic(), "foo");
+        CXXTOOLS_UNIT_ASSERT_EQUALS(dm.topic().main(), "foo");
         dm.get(result);
     });
 

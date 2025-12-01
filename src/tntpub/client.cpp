@@ -180,7 +180,7 @@ void Client::onOutput(cxxtools::IODevice&)
             _peer.beginWrite(_outputBuffer.data(), _outputBuffer.size());
         }
     }
-    catch (const std::exception& e)
+    catch (const cxxtools::IOError& e)
     {
         log_warn("output failed: " << e.what());
         _peer.close();
@@ -202,7 +202,7 @@ void Client::onInput(cxxtools::IODevice&)
             _dataMessage = std::move(dataMessage);
         }))
         {
-            log_debug("got message to topic <" << _dataMessage.topic().topic() << '>');
+            log_debug("got message to topic <" << _dataMessage.topic().main() << '>');
             log_finer_if(_dataMessage.type() == DataMessage::Type::Data, cxxtools::Json(_dataMessage.si()).beautify(true));
             dispatchMessage(_dataMessage);
 

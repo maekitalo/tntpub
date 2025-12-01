@@ -72,7 +72,7 @@ const cxxtools::SerializationInfo& DataMessage::si() const
 void DataMessage::appendTo(std::vector<char>& buffer) const
 {
     auto offset = buffer.size();
-    auto messageLength = sizeof(Header) + _topic.topic().size() + _topic.subtopic().size() + _data.size();
+    auto messageLength = sizeof(Header) + _topic.main().size() + _topic.sub().size() + _data.size();
     buffer.resize(offset + messageLength);
     auto ptr = buffer.data() + offset;
 
@@ -82,15 +82,15 @@ void DataMessage::appendTo(std::vector<char>& buffer) const
     header._messageLength = messageLength;
     header._createDateJulian = _createDateTime.date().julian();
     header._createTimeUSecs = _createDateTime.time().totalUSecs();
-    header._topicLength = _topic.topic().size();
-    header._subtopicLength = _topic.subtopic().size();
+    header._topicLength = _topic.main().size();
+    header._subtopicLength = _topic.sub().size();
     header._type = _type;
     header._serial = _serial;
 
     log_debug("new header; " << cxxtools::Json(header));
 
-    _topic.topic().copy(ptr + header.topicOffset(), _topic.topic().size());
-    _topic.subtopic().copy(ptr + header.subtopicOffset(), _topic.subtopic().size());
+    _topic.main().copy(ptr + header.topicOffset(), _topic.main().size());
+    _topic.sub().copy(ptr + header.subtopicOffset(), _topic.sub().size());
     _data.copy(ptr + header.dataOffset(), _data.size());
 }
 
@@ -173,7 +173,7 @@ unsigned DataMessageDeserializer::processMessage(const char* buffer, unsigned bu
         buffer += header.messageLength();
         remaining -= header.messageLength();
 
-        log_debug("message to topic <" << dataMessage.topic().topic() << "> processed " << remaining << " bytes left in input buffer");
+        log_debug("message to topic <" << dataMessage.topic().main() << "> processed " << remaining << " bytes left in input buffer");
 
         messageReceived(dataMessage);
         message(dataMessage);
@@ -205,7 +205,7 @@ unsigned DataMessageDeserializer::processMessage(const char* buffer, unsigned bu
         buffer += header.messageLength();
         remaining -= header.messageLength();
 
-        log_debug("message to topic <" << dataMessage.topic().topic() << "> processed " << remaining << " bytes left in input buffer");
+        log_debug("message to topic <" << dataMessage.topic().main() << "> processed " << remaining << " bytes left in input buffer");
 
         messageReceived(dataMessage);
         message(dataMessage);
@@ -257,9 +257,9 @@ unsigned DataMessageDeserializer::advance(const char* buffer, unsigned bufsize, 
 void operator<<= (cxxtools::SerializationInfo& si, const DataMessage& dm)
 {
     si.addMember("type") <<= cxxtools::EnumClass(dm._type);
-    si.addMember("topic") <<= dm._topic.topic();
-    if (dm._topic.subtopic().size() > 0)
-        si.addMember("subtopic") <<= dm._topic.subtopic();
+    si.addMember("topic") <<= dm._topic.main();
+    if (dm._topic.sub().size() > 0)
+        si.addMember("sub") <<= dm._topic.sub();
     si.addMember("serial") <<= dm._serial;
     si.addMember("createDateTime") <<= dm._createDateTime;
     si.addMember("data") <<= dm._data;
@@ -268,8 +268,8 @@ void operator<<= (cxxtools::SerializationInfo& si, const DataMessage& dm)
 void operator>>= (const cxxtools::SerializationInfo& si, DataMessage& dm)
 {
     si.getMember("type") >>= cxxtools::EnumClass(dm._type);
-    si.getMember("topic") >>= dm._topic._topic;
-    si.getMember("subtopic", dm._topic._subtopic);
+    si.getMember("topic") >>= dm._topic._main;
+    si.getMember("sub", dm._topic._sub);
     si.getMember("serial") >>= dm._serial;
     si.getMember("createDateTime") >>= dm._createDateTime;
     si.getMember("data") >>= dm._data;
@@ -287,9 +287,9 @@ void operator<<= (cxxtools::SerializationInfo& si, const DataMessage::Header& he
 
 std::ostream& operator<< (std::ostream& out, const Topic& topic)
 {
-    out << topic.topic();
-    if (!topic.subtopic().empty())
-        out << '[' << topic.subtopic() << ']';
+    out << topic.main();
+    if (!topic.sub().empty())
+        out << '[' << topic.sub() << ']';
     return out;
 }
 

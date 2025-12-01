@@ -43,7 +43,6 @@ void InvalidMessageTest::sendInvalidMessage()
 
     char buffer[200];
     bool replyReceived = false;
-    bool connectionClosed = false;
 
     cxxtools::connect(client.outputReady, [&buffer](cxxtools::IODevice& client) {
             log_debug("outputReady");
@@ -54,7 +53,7 @@ void InvalidMessageTest::sendInvalidMessage()
     cxxtools::connect(client.inputReady, [&replyReceived](cxxtools::IODevice& client) {
             log_debug("inputReady");
             auto n = client.endRead();
-            CXXTOOLS_UNIT_ASSERT_EQUALS(n, 0);
+            CXXTOOLS_UNIT_ASSERT_EQUALS(n, 0u);
             replyReceived = true;
     });
 

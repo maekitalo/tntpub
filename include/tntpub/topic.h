@@ -17,37 +17,36 @@ class Topic
 {
     friend void operator>>= (const cxxtools::SerializationInfo& si, DataMessage& dm);
 
-    std::string _topic;
-    std::string _subtopic;
+    std::string _main;
+    std::string _sub;
 
 public:
     Topic() = default;
-    Topic(const std::string& topic, const std::string& subtopic = std::string())
-        : _topic(topic),
-          _subtopic(subtopic)
+    Topic(const std::string& main, const std::string& sub = std::string())
+        : _main(main),
+          _sub(sub)
     { }
-    Topic(const char* topic, const char* subtopic = "")
-        : _topic(topic),
-          _subtopic(subtopic)
+    Topic(const char* main, const char* sub = "")
+        : _main(main),
+          _sub(sub)
         { }
 
-    const std::string& topic() const        { return _topic; }
-    const std::string& subtopic() const     { return _subtopic; }
-
-    operator std::string() const    { return _subtopic.empty() ? _topic : _topic + '.' + _subtopic; }
+    std::string str() const             { return _sub.empty() ? _main : _main + '.' + _sub; }
+    const std::string& main() const     { return _main; }
+    const std::string& sub() const      { return _sub; }
 
     bool match(const Topic& other) const
     {
-        if (_topic != other._topic)
+        if (_main != other._main)
             return false;
-        return other._subtopic.empty() || _subtopic == other._subtopic;
+        return other._sub.empty() || _sub == other._sub;
     }
 };
 
 inline bool operator== (const Topic& l, const Topic& r)
 {
-    return l.topic() == r.topic()
-        && l.subtopic() == r.subtopic();
+    return l.main() == r.main()
+        && l.sub() == r.sub();
 }
 
 std::ostream& operator<< (std::ostream& out, const Topic& topic);

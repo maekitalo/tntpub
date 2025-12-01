@@ -35,8 +35,8 @@ public:
 
 bool FullTopic::match(const Topic& topic) const
 {
-    return topic.topic() == data().topic()
-        && (data().subtopic().empty() || data().subtopic() == topic.subtopic());
+    return topic.main() == data().main()
+        && (data().sub().empty() || data().sub() == topic.sub());
 }
 
 bool FullTopic::is(Subscription::Type type) const
@@ -56,8 +56,8 @@ public:
 
 bool PrefixTopic::match(const Topic& topic) const
 {
-    return topic.topic().compare(0, data().topic().size(), data().topic()) == 0
-        && (data().subtopic().empty() || data().subtopic() == topic.subtopic());
+    return topic.main().compare(0, data().main().size(), data().main()) == 0
+        && (data().sub().empty() || data().sub() == topic.sub());
 }
 
 bool PrefixTopic::is(Subscription::Type type) const
@@ -71,7 +71,7 @@ class RegexTopic : public Subscription::Impl
 public:
     explicit RegexTopic(const Topic& topic)
         : Impl(topic),
-          _regex(topic.subtopic())
+          _regex(topic.sub())
         { }
     bool match(const Topic& topic) const override;
     bool is(Subscription::Type type) const override;
@@ -79,8 +79,8 @@ public:
 
 bool RegexTopic::match(const Topic& topic) const
 {
-    return data().topic() == topic.topic()
-        && _regex.match(topic.subtopic());
+    return data().main() == topic.main()
+        && _regex.match(topic.sub());
 }
 
 bool RegexTopic::is(Subscription::Type type) const
@@ -94,7 +94,7 @@ class RegexTopicReversed : public Subscription::Impl
 public:
     explicit RegexTopicReversed(const Topic& topic)
         : Impl(topic),
-          _regex(topic.subtopic())
+          _regex(topic.sub())
         { }
     bool match(const Topic& topic) const override;
     bool is(Subscription::Type type) const override;
@@ -102,8 +102,8 @@ public:
 
 bool RegexTopicReversed::match(const Topic& topic) const
 {
-    return data().topic() == topic.topic()
-        && !_regex.match(topic.subtopic());
+    return data().main() == topic.main()
+        && !_regex.match(topic.sub());
 }
 
 bool RegexTopicReversed::is(Subscription::Type type) const
@@ -130,8 +130,8 @@ Subscription::Subscription(const std::string& topic, Type type)
     : Subscription(Topic(topic), type)
 { }
 
-Subscription::Subscription(const std::string& topic, const std::string& subtopic, Type type)
-    : Subscription(Topic(topic, subtopic), type)
+Subscription::Subscription(const std::string& topic, const std::string& sub, Type type)
+    : Subscription(Topic(topic, sub), type)
 { }
 
 Subscription::~Subscription()
@@ -149,9 +149,9 @@ bool Subscription::match(const Topic& topic) const
 bool Subscription::equals(const Topic& topic, Subscription::Type type) const
 {
     if (_impl)
-        return _impl->is(type) && _impl->data().topic() == topic.topic();
+        return _impl->is(type) && _impl->data().main() == topic.main();
     else
-        return topic.topic().empty();
+        return topic.main().empty();
 }
 
 }

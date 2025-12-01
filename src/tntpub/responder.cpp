@@ -59,7 +59,7 @@ void Responder::unsubscribeMessageReceived(const DataMessage& unsubscribeMessage
 
     for (auto it = _subscriptions.begin(); it != _subscriptions.end(); ++it)
     {
-        if (it->equals(unsubscribeMessage.topic().topic(), DataMessage::subscriptionType(unsubscribeMessage.type())))
+        if (it->equals(unsubscribeMessage.topic().main(), DataMessage::subscriptionType(unsubscribeMessage.type())))
         {
             _subscriptions.erase(it);
             break;
