@@ -7,6 +7,7 @@
 #include <tntpub/datamessage.h>
 
 #include <cxxtools/json.h>
+#include <cxxtools/ioerror.h>
 #include <cxxtools/log.h>
 
 log_define("tntpub.client")
@@ -217,7 +218,7 @@ void Client::onInput(cxxtools::IODevice&)
         else
             beginRead();
     }
-    catch (const std::exception& e)
+    catch (const cxxtools::IOError& e)
     {
         log_warn("read failed: " << e.what());
         _peer.close();
