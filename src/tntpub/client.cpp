@@ -222,6 +222,9 @@ void Client::onInput(cxxtools::IODevice&)
     {
         log_warn("read failed: " << e.what());
         _peer.close();
+        _inputBuffer.clear();
+        _outputBuffer.clear();
+        _outputBufferNext.clear();
         closed(*this);
         return;
     }
