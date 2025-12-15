@@ -79,6 +79,7 @@ public:
         uint64_t _serial;
         uint16_t _topicLength;
         uint16_t _subtopicLength;
+        uint16_t _sourceLength;
         Type _type;
 
         uint32_t messageLength() const      { return _messageLength; }
@@ -86,7 +87,9 @@ public:
         uint16_t topicLength() const        { return _topicLength; }
         uint32_t subtopicOffset() const     { return topicOffset() + _topicLength; }
         uint16_t subtopicLength() const     { return _subtopicLength; }
-        uint32_t dataOffset() const         { return subtopicOffset() + _subtopicLength; }
+        uint32_t sourceOffset() const       { return subtopicOffset() + _subtopicLength; }
+        uint16_t sourceLength() const       { return _sourceLength; }
+        uint32_t dataOffset() const         { return sourceOffset() + _sourceLength; }
         uint32_t dataLength() const         { return _messageLength - dataOffset(); }
 
         cxxtools::UtcDateTime createDateTime() const
@@ -102,6 +105,7 @@ public:
 private:
     Type _type = Type::Null;
     Topic _topic;
+    std::string _source;
     decltype(Header::_serial) _serial = 0;
     cxxtools::UtcDateTime _createDateTime;
     std::string _data;
@@ -109,10 +113,12 @@ private:
 
     void setData(const cxxtools::SerializationInfo& si);
     static decltype(_serial)  _lastSerial;
+    static const std::string& myhostname();
 
-    DataMessage(const Topic& topic, Type type, const cxxtools::UtcDateTime& createDateTime, const std::string& data)
+    DataMessage(const Topic& topic, Type type, const std::string& source, const cxxtools::UtcDateTime& createDateTime, const std::string& data)
         : _type(type),
           _topic(topic),
+          _source(source),
           _createDateTime(createDateTime),
           _data(data)
         { }
@@ -120,6 +126,7 @@ private:
     DataMessage(const Topic& topic, Type type, const std::string& data)
         : _type(type),
           _topic(topic),
+          _source(myhostname()),
           _createDateTime(cxxtools::Clock::getSystemTime()),
           _data(data)
         { }
@@ -132,6 +139,7 @@ public:
     DataMessage(const DataMessage& dm)
         : _type(dm._type),
           _topic(dm._topic),
+          _source(dm._source),
           _serial(dm._serial),
           _createDateTime(dm._createDateTime),
           _data(dm._data),
@@ -142,6 +150,7 @@ public:
     {
         _type = dm._type;
         _topic = dm._topic;
+        _source = dm._source;
         _serial = dm._serial;
         _createDateTime = dm._createDateTime;
         _data = dm._data;
@@ -162,6 +171,7 @@ public:
     DataMessage(const Topic& topic, const Obj& obj)
         : _type(Type::Data),
           _topic(topic),
+          _source(myhostname()),
           _serial(0),
           _createDateTime(cxxtools::Clock::getSystemTime())
     {
@@ -212,6 +222,9 @@ public:
     void topic(const Topic& topic)
         { _topic = topic; }
 
+    /// Returns the source host of the message
+    const std::string& source()
+        { return _source; }
     /// Returns the type
     Type type() const 
         { return _type; }
@@ -259,7 +272,7 @@ public:
         { _serial = ++_lastSerial; }
     void serial(uint32_t v)
         { _serial = v; }
-    std::string checksum(bool withSerial = true) const;
+    std::string checksum(bool full = true) const;
 
     static Subscription::Type subscriptionType(Type messageType);
 
@@ -283,9 +296,9 @@ public:
         { _inputData.append(buffer, bufsize); }
 
     // process message - returns number of bytes consumed
-    unsigned processMessage(const char* buffer, unsigned bufsize, std::function<void(DataMessage&)> messageReceived);
-    bool processMessage(std::function<void(DataMessage&)> messageReceived);
-    unsigned advance(const char* buffer, unsigned bufsize, std::function<void(DataMessage&)> messageReceived);
+    unsigned processMessage(const char* buffer, unsigned bufsize, const std::function<void(DataMessage&)>& messageReceived);
+    bool processMessage(const std::function<void(DataMessage&)>& messageReceived);
+    unsigned advance(const char* buffer, unsigned bufsize, const std::function<void(DataMessage&)>& messageReceived);
     unsigned in_avail() const   { return _inputData.size(); }
 
     cxxtools::Signal<DataMessage&> message;

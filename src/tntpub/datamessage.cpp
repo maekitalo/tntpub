@@ -12,12 +12,36 @@
 #include <cxxtools/md5stream.h>
 #include <sstream>
 #include <iostream>
+#include <mutex>
+#include <unistd.h>
 
 log_define("tntpub.datamessage")
 
 namespace tntpub
 {
 decltype(DataMessage::_serial) DataMessage::_lastSerial = 0;
+
+const std::string& DataMessage::myhostname()
+{
+    static std::string myhostname;
+    static std::once_flag once;
+    std::call_once(once, []() {
+        char buffer[255];
+        int ret = ::gethostname(buffer, sizeof(buffer));
+        if (ret == 0)
+        {
+            myhostname = buffer;
+        }
+        else
+        {
+            const char* HOSTNAME = getenv("HOSTNAME");
+            if (HOSTNAME)
+                myhostname = HOSTNAME;
+        }
+    });
+
+    return myhostname;
+}
 
 DataMessage DataMessage::subscribe(const Topic& topic, Subscription::Type type, const std::string& data)
 {
@@ -45,6 +69,7 @@ DataMessage DataMessage::unsubscribe(const Topic& topic, Subscription::Type type
 DataMessage::DataMessage(const Topic& topic, Type type, cxxtools::SerializationInfo&& data)
     : _type(type),
       _topic(topic),
+      _source(myhostname()),
       _createDateTime(cxxtools::Clock::getSystemTime()),
       _si(std::move(data))
 {
@@ -72,7 +97,7 @@ const cxxtools::SerializationInfo& DataMessage::si() const
 void DataMessage::appendTo(std::vector<char>& buffer) const
 {
     auto offset = buffer.size();
-    auto messageLength = sizeof(Header) + _topic.main().size() + _topic.sub().size() + _data.size();
+    auto messageLength = sizeof(Header) + _topic.main().size() + _topic.sub().size() + _source.size() + _data.size();
     buffer.resize(offset + messageLength);
     auto ptr = buffer.data() + offset;
 
@@ -84,6 +109,7 @@ void DataMessage::appendTo(std::vector<char>& buffer) const
     header._createTimeUSecs = _createDateTime.time().totalUSecs();
     header._topicLength = _topic.main().size();
     header._subtopicLength = _topic.sub().size();
+    header._sourceLength = _source.size();
     header._type = _type;
     header._serial = _serial;
 
@@ -91,6 +117,7 @@ void DataMessage::appendTo(std::vector<char>& buffer) const
 
     _topic.main().copy(ptr + header.topicOffset(), _topic.main().size());
     _topic.sub().copy(ptr + header.subtopicOffset(), _topic.sub().size());
+    _source.copy(ptr + header.sourceOffset(), _source.size());
     _data.copy(ptr + header.dataOffset(), _data.size());
 }
 
@@ -124,7 +151,7 @@ inline static bool isValidType(DataMessage::Type type)
         || type == DataMessage::Type::System;
 }
 
-unsigned DataMessageDeserializer::processMessage(const char* buffer, unsigned bufsize, std::function<void(DataMessage&)> messageReceived)
+unsigned DataMessageDeserializer::processMessage(const char* buffer, unsigned bufsize, const std::function<void(DataMessage&)>& messageReceived)
 {
     log_finer("parse message from buffer; " << bufsize << " bytes available");
     log_finest(cxxtools::hexDump(buffer, bufsize));
@@ -166,6 +193,7 @@ unsigned DataMessageDeserializer::processMessage(const char* buffer, unsigned bu
             Topic(std::string(buffer + header.topicOffset(), header.topicLength()),
                   std::string(buffer + header.subtopicOffset(), header.subtopicLength())),
             header._type,
+            std::string(buffer + header.sourceOffset(), header.sourceLength()),
             header.createDateTime(),
             std::string(buffer + header.dataOffset(), header.dataLength()));
 
@@ -198,6 +226,7 @@ unsigned DataMessageDeserializer::processMessage(const char* buffer, unsigned bu
         DataMessage dataMessage(
             Topic(std::string(buffer + header.topicOffset(), header.topicLength())),
             header._type,
+            "",
             header.createDateTime(),
             std::string(buffer + header.dataOffset(), header.dataLength()));
 
@@ -216,7 +245,7 @@ unsigned DataMessageDeserializer::processMessage(const char* buffer, unsigned bu
     return bufsize - remaining;
 }
 
-bool DataMessageDeserializer::processMessage(std::function<void(DataMessage&)> messageReceived)
+bool DataMessageDeserializer::processMessage(const std::function<void(DataMessage&)>& messageReceived)
 {
     unsigned count = processMessage(_inputData.data(), _inputData.size(), messageReceived);
 
@@ -228,7 +257,7 @@ bool DataMessageDeserializer::processMessage(std::function<void(DataMessage&)> m
     return true;
 }
 
-unsigned DataMessageDeserializer::advance(const char* buffer, unsigned bufsize, std::function<void(DataMessage&)> messageReceived)
+unsigned DataMessageDeserializer::advance(const char* buffer, unsigned bufsize, const std::function<void(DataMessage&)>& messageReceived)
 {
     unsigned count = 0;
 
@@ -260,6 +289,8 @@ void operator<<= (cxxtools::SerializationInfo& si, const DataMessage& dm)
     si.addMember("topic") <<= dm._topic.main();
     if (dm._topic.sub().size() > 0)
         si.addMember("sub") <<= dm._topic.sub();
+    if (!dm._source.empty())
+        si.addMember("source") <<= dm._source;
     si.addMember("serial") <<= dm._serial;
     si.addMember("createDateTime") <<= dm._createDateTime;
     si.addMember("data") <<= dm._data;
@@ -270,6 +301,7 @@ void operator>>= (const cxxtools::SerializationInfo& si, DataMessage& dm)
     si.getMember("type") >>= cxxtools::EnumClass(dm._type);
     si.getMember("topic") >>= dm._topic._main;
     si.getMember("sub", dm._topic._sub);
+    si.getMember("source", dm._source);
     si.getMember("serial") >>= dm._serial;
     si.getMember("createDateTime") >>= dm._createDateTime;
     si.getMember("data") >>= dm._data;
@@ -293,12 +325,12 @@ std::ostream& operator<< (std::ostream& out, const Topic& topic)
     return out;
 }
 
-std::string DataMessage::checksum(bool withSerial) const
+std::string DataMessage::checksum(bool full) const
 {
     cxxtools::Md5stream s;
     s << static_cast<std::underlying_type<Type>::type>(_type) << _topic;
-    if (withSerial)
-        s << _serial;
+    if (full)
+        s << _serial << _source;
     s << _createDateTime.date().julian() << _createDateTime.time().totalUSecs() << _data;
     return s.getHexDigest();
 }
