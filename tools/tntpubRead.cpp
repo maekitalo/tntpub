@@ -1,5 +1,6 @@
 #include <tntpub/client.h>
 #include <tntpub/datamessage.h>
+#include <cxxtools/json.h>
 #include <cxxtools/arg.h>
 #include <cxxtools/log.h>
 #include <iostream>
@@ -18,6 +19,7 @@ int main(int argc, char* argv[])
         cxxtools::Arg<unsigned short> port(argc, argv, 'p', 9001);
         cxxtools::Arg<bool> prefix(argc, argv, 'P');
         cxxtools::Arg<bool> regex(argc, argv, 'R');
+        cxxtools::Arg<bool> json(argc, argv, 'j');
 
         if (argc <= 1)
         {
@@ -25,7 +27,8 @@ int main(int argc, char* argv[])
                          " -i <ip>      IP of server (default localhost)\n"
                          " -p <port>    tcp port (default: 9001)\n"
                          " -P           subscribe by prefix\n"
-                         " -R           subscribe by regular expression\n";
+                         " -R           subscribe by regular expression\n"
+                         " -j           output full message in Json format\n";
             return -1;
         }
 
@@ -39,7 +42,10 @@ int main(int argc, char* argv[])
         while (true)
         {
             auto dm = client.readMessage();
-            std::cout << dm.data() << std::endl;
+            if (json)
+                std::cout << cxxtools::Json(dm).beautify(true) << std::endl;
+            else
+                std::cout << dm.data() << std::endl;
         }
     }
     catch (const std::exception& e)
