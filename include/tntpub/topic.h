@@ -32,6 +32,7 @@ public:
         { }
 
     std::string str() const             { return _sub.empty() ? _main : _main + '.' + _sub; }
+    operator std::string() const        { return str(); }
     const std::string& main() const     { return _main; }
     const std::string& sub() const      { return _sub; }
 
