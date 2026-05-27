@@ -2,8 +2,8 @@
 #define TNTPUB_SERVICEPROCEDURE_H
 
 #include <cxxtools/serializationerror.h>
-#include <cxxtools/typetraits.h>
 #include <tntpub/datamessage.h>
+#include <type_traits>
 
 namespace tntpub
 {
@@ -30,7 +30,7 @@ public:
         if (dm.type() != DataMessage::Type::Data)
             return;
 
-        typename cxxtools::TypeTraits<A>::Value arg;
+        std::remove_cv_t<std::remove_reference_t<A>> arg;
         try
         {
             dm.si() >>= arg;
@@ -59,7 +59,7 @@ public:
 
     virtual void invoke(const DataMessage& dm)
     {
-        typename cxxtools::TypeTraits<A>::Value arg;
+        std::remove_cv_t<std::remove_reference_t<A>> arg;
         try
         {
             dm.si() >>= arg;
