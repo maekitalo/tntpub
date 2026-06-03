@@ -47,7 +47,7 @@ public:
     struct Header1
     {
         uint32_t _messageLength;
-        unsigned _createDateJulian;
+        uint32_t _createDateJulian;
         uint64_t _createTimeUSecs;
         uint64_t _serial;
         uint16_t _topicLength;
@@ -74,7 +74,7 @@ public:
 
         uint32_t _magic = magic;
         uint32_t _messageLength;
-        unsigned _createDateJulian;
+        uint32_t _createDateJulian;
         uint64_t _createTimeUSecs;
         uint64_t _serial;
         uint16_t _topicLength;
