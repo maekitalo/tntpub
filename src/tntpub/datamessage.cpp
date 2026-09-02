@@ -26,17 +26,17 @@ const std::string& DataMessage::myhostname()
     static std::string myhostname;
     static std::once_flag once;
     std::call_once(once, []() {
-        char buffer[255];
-        int ret = ::gethostname(buffer, sizeof(buffer));
-        if (ret == 0)
-        {
-            myhostname = buffer;
-        }
+        const char* HOSTNAME = getenv("HOSTNAME");
+        if (HOSTNAME)
+            myhostname = HOSTNAME;
         else
         {
-            const char* HOSTNAME = getenv("HOSTNAME");
-            if (HOSTNAME)
-                myhostname = HOSTNAME;
+            char buffer[255];
+            int ret = ::gethostname(buffer, sizeof(buffer));
+            if (ret == 0)
+            {
+                myhostname = buffer;
+            }
         }
     });
 
@@ -73,6 +73,7 @@ DataMessage::DataMessage(const Topic& topic, Type type, cxxtools::SerializationI
       _createDateTime(cxxtools::Clock::getSystemTime()),
       _si(std::move(data))
 {
+    log_debug("data message created; source " << _source << " type " << static_cast<char>(type) << " ts " << _createDateTime.toString() << " data " << cxxtools::Json(_si));
     setData(_si);
 }
 

@@ -27,8 +27,7 @@ unsigned Responder::_maxOBuf = 0;
 
 Responder::Responder(Server& pubSubServer)
     : _pubSubServer(pubSubServer),
-      _socket(*pubSubServer.selector(), pubSubServer._server),
-      systemMessageReceived(pubSubServer.systemMessageReceived)
+      _socket(*pubSubServer.selector(), pubSubServer._server)
 {
     log_info("new client " << static_cast<void*>(this) << " connected");
     log_debug("connection from " << _socket.getPeerAddr() << " fd " << _socket.getFd());
@@ -65,6 +64,11 @@ void Responder::unsubscribeMessageReceived(const DataMessage& unsubscribeMessage
             break;
         }
     }
+}
+
+void Responder::systemMessageReceived(const DataMessage& systemMessage)
+{
+    return;
 }
 
 void Responder::subscribe(const DataMessage& subscribeMessage)
