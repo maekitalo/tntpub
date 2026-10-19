@@ -1,4 +1,4 @@
-AC_INIT(tntpub, 4.2, [Tommi Maekitalo <tommi@tntnet.org>])
+AC_INIT(tntpub, 5.0, [Tommi Maekitalo <tommi@tntnet.org>])
 AM_INIT_AUTOMAKE
 LT_INIT
 
